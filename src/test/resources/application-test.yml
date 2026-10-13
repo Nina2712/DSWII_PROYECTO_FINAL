@@ -1,0 +1,16 @@
+# Perfil "test": las pruebas de la capa de datos usan un esquema APARTE (medicita_test)
+# del MySQL local, para no tocar los datos de desarrollo.
+# Crear el esquema una sola vez con docs/crear-bd-pruebas.sql
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:mysql://localhost:3306/medicita_test?connectionTimeZone=America/Lima&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${TEST_DB_USER:medicita}
+    password: ${TEST_DB_PASSWORD:medicita123}
+  flyway:
+    enabled: true
+    # Solo el esquema: sin los datos de demostración (db/seed), para partir de una base vacía
+    locations: classpath:db/migration
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate   # comprueba que las entidades coinciden con las migraciones

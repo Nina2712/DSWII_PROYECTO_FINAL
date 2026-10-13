@@ -51,4 +51,13 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.withType<Test> { useJUnitPlatform() }
+tasks.withType<Test> {
+    useJUnitPlatform()
+    testLogging {
+        // Muestra cada prueba en la consola (PASSED / FAILED) y el detalle de los fallos
+        events("passed", "failed", "skipped")
+        showExceptions = true
+        showCauses = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
