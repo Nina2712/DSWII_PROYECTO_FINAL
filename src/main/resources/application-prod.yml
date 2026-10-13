@@ -1,6 +1,32 @@
 spring:
+  datasource:
+    # Sin valores por defecto: si falta una variable, la app NO arranca (así no apunta a una BD equivocada)
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5        # el MySQL gratuito de Aiven permite ~76 conexiones en total
+      minimum-idle: 1
+      max-lifetime: 1200000       # 20 min, menor que el timeout de inactividad del proveedor
   jpa:
     show-sql: false
+  flyway:
+    # Producción: solo el esquema. Para cargar datos de demostración usar
+    # FLYWAY_LOCATIONS=classpath:db/migration,classpath:db/seed (ver docs/DESPLIEGUE.md)
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration}
+
+server:
+  # Detrás del proxy de la nube (HTTPS): Swagger y las redirecciones usan la URL pública correcta
+  forward-headers-strategy: framework
+  shutdown: graceful
+
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
+
 logging:
   level:
     root: INFO
+    com.medicita: INFO

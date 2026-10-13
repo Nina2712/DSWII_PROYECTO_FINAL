@@ -34,3 +34,7 @@ app:
   jwt:
     secret: ${JWT_SECRET:clave-solo-para-desarrollo-cambiar-en-produccion-123456}
     expiration-minutes: 120
+  # Administrador inicial opcional (se crea o se actualiza al arrancar). Ver docs/DESPLIEGUE.md
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}

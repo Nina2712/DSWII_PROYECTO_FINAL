@@ -51,3 +51,6 @@ Variables opcionales: `TEST_DB_URL`, `TEST_DB_USER`, `TEST_DB_PASSWORD`.
 ## Pruebas con Postman
 Importar `postman/MediCita.postman_collection.json` y usar **Run collection** con la aplicación en marcha:
 cada petición incluye pruebas automáticas y la colección deja la base de datos como estaba.
+
+## Despliegue en la nube
+Ver [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) (Render + Aiven MySQL, variables de entorno, entorno Postman `postman/MediCita.nube.postman_environment.json`).

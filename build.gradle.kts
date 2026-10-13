@@ -11,6 +11,11 @@ java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
 }
 
+// Un nombre fijo para el JAR ejecutable (el Dockerfile lo copia sin ambigüedad con el "-plain.jar")
+tasks.bootJar {
+    archiveFileName.set("app.jar")
+}
+
 configurations {
     compileOnly { extendsFrom(configurations.annotationProcessor.get()) }
 }
