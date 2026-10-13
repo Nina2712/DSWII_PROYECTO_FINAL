@@ -69,6 +69,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), req, null);
     }
 
+    @ExceptionHandler(SolicitudInvalidaException.class)
+    public ResponseEntity<ErrorResponse> solicitudInvalida(SolicitudInvalidaException ex, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req, null);
+    }
+
     @ExceptionHandler(ReglaNegocioException.class)
     public ResponseEntity<ErrorResponse> reglaNegocio(ReglaNegocioException ex, HttpServletRequest req) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), req, null);

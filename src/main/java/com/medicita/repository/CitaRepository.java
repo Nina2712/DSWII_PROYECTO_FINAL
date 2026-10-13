@@ -4,14 +4,27 @@ import com.medicita.entity.Cita;
 import com.medicita.enums.EstadoCita;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-public interface CitaRepository extends JpaRepository<Cita, Long> {
+public interface CitaRepository extends JpaRepository<Cita, Long>, JpaSpecificationExecutor<Cita> {
+
+    /** Carga paciente, médico, especialidad y sede en una sola consulta (evita el problema N+1). */
+    @Override
+    @EntityGraph(attributePaths = {"paciente.usuario", "medico.usuario", "medico.especialidad", "medico.sede"})
+    Page<Cita> findAll(Specification<Cita> spec, Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = {"paciente.usuario", "medico.usuario", "medico.especialidad", "medico.sede"})
+    Optional<Cita> findById(Long id);
 
     Page<Cita> findByPacienteId(Long pacienteId, Pageable pageable);
 
@@ -27,4 +40,30 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
                                   com.medicita.enums.EstadoCita.NO_ASISTIO)
            """)
     boolean existeCitaActiva(@Param("medicoId") Long medicoId, @Param("fechaHora") LocalDateTime fechaHora);
+
+    /** ¿El médico ya tiene otra cita activa a esa hora? (excluirId = cita que se está reprogramando, o -1). */
+    @Query("""
+           SELECT COUNT(c) > 0 FROM Cita c
+           WHERE c.medico.id = :medicoId
+             AND c.fechaHora = :fechaHora
+             AND c.id <> :excluirId
+             AND c.estado NOT IN (com.medicita.enums.EstadoCita.CANCELADA,
+                                  com.medicita.enums.EstadoCita.NO_ASISTIO)
+           """)
+    boolean existeCitaActivaDelMedico(@Param("medicoId") Long medicoId,
+                                      @Param("fechaHora") LocalDateTime fechaHora,
+                                      @Param("excluirId") Long excluirId);
+
+    /** ¿El paciente ya tiene otra cita activa a esa hora (con cualquier médico)? */
+    @Query("""
+           SELECT COUNT(c) > 0 FROM Cita c
+           WHERE c.paciente.id = :pacienteId
+             AND c.fechaHora = :fechaHora
+             AND c.id <> :excluirId
+             AND c.estado NOT IN (com.medicita.enums.EstadoCita.CANCELADA,
+                                  com.medicita.enums.EstadoCita.NO_ASISTIO)
+           """)
+    boolean existeCitaActivaDelPaciente(@Param("pacienteId") Long pacienteId,
+                                        @Param("fechaHora") LocalDateTime fechaHora,
+                                        @Param("excluirId") Long excluirId);
 }
