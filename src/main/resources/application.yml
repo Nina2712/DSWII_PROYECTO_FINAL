@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: medicita
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/medicita?connectionTimeZone=America/Lima&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${DB_USER:medicita}
+    password: ${DB_PASSWORD:medicita123}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate          # el esquema lo maneja Flyway
+    properties:
+      hibernate.jdbc.time_zone: America/Lima
+  flyway:
+    enabled: true
+    # db/seed = datos de demostración (quitar "seed" si no los quieres en producción)
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration,classpath:db/seed}
+  jackson:
+    time-zone: America/Lima
+    default-property-inclusion: non_null
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:clave-solo-para-desarrollo-cambiar-en-produccion-123456}
+    expiration-minutes: 120
