@@ -31,11 +31,31 @@ Swagger: http://localhost:8080/swagger-ui/index.html
 | POST | `/api/citas` | Reservar una cita | paciente, recepción, admin |
 | PUT | `/api/citas/{id}` | Reprogramar, cambiar estado u observaciones | según rol |
 | DELETE | `/api/citas/{id}` | Cancelar (`?definitivo=true` elimina, solo admin) | paciente, recepción, admin |
+| GET | `/api/dashboard/resumen` | Indicadores y series del panel (últimos 30 y próximos 30 días) | todos (cada rol ve lo suyo) |
+| GET | `/api/catalogo/medicos` | Médicos con especialidad, sede y horarios | todos |
+| GET | `/api/catalogo/pacientes` | Pacientes (para reservar a su nombre) | recepción, admin |
+| GET | `/api/catalogo/medicos/{id}/horas-libres?fecha=AAAA-MM-DD` | Bloques de 30 min libres de un médico | todos |
 
 **Reglas de negocio:** bloques de 30 minutos dentro del horario del médico, sin cruces de horario (médico ni paciente),
 el paciente solo modifica o cancela hasta 2 horas antes, y flujo de estados PENDIENTE → CONFIRMADA → ATENDIDA / NO_ASISTIO (o CANCELADA).
 
-## Pruebas automáticas
+## Dashboard web
+Interfaz servida por el mismo Spring Boot desde `src/main/resources/static` (sin Node, sin librerías externas): abrir la raíz `/` de la aplicación
+(local: http://localhost:8080/, nube: la URL pública de Render). Se despliega sola con cada `git push`.
+
+| Vista | Qué muestra |
+|---|---|
+| Inicio de sesión | Login con JWT y cuentas de demostración |
+| Resumen | Indicadores (citas de hoy, pendientes, confirmadas, asistencia), citas por día, por estado, por especialidad y por médico, próximas citas |
+| Agenda | Calendario semanal y mensual con las citas coloreadas por estado; filtro por médico (recepción y administración) |
+| Citas | Tabla con filtros (estado, médico, fechas, orden) y paginación |
+| Detalle de cita | Panel lateral con acciones según el rol: confirmar, atender, no asistió, reprogramar, cancelar, observaciones, eliminar (admin) |
+| Nueva cita | Reserva con médicos, horas libres calculadas por el servidor y validación de cruces |
+
+Cada rol ve solo lo suyo (paciente: sus citas; médico: su agenda; recepción y administración: toda la clínica). Incluye modo claro y oscuro
+y se adapta a celular. Los permisos los aplica siempre el backend; la interfaz solo oculta los botones que no corresponden.
+
+
 Las pruebas de la capa de datos (`@DataJpaTest`) usan **MySQL real** en un esquema aparte, `medicita_test`, para no tocar los datos de desarrollo.
 Cubren insertar, actualizar, eliminar y listar (con paginación y filtros), además de restricciones únicas, integridad referencial y reglas de horario.
 
