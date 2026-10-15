@@ -44,6 +44,7 @@ async function pedir(metodo, ruta, { params, body, auth = true } = {}) {
 
 export const api = {
   login: (email, password) => pedir('POST', '/api/auth/login', { body: { email, password }, auth: false }),
+  registrar: cuerpo => pedir('POST', '/api/auth/registro', { body: cuerpo, auth: false }),
   resumen: () => pedir('GET', '/api/dashboard/resumen'),
   citas: params => pedir('GET', '/api/citas', { params }),
   cita: id => pedir('GET', `/api/citas/${id}`),
@@ -53,6 +54,19 @@ export const api = {
   eliminarCita: id => pedir('DELETE', `/api/citas/${id}`, { params: { definitivo: true } }),
   medicos: () => pedir('GET', '/api/catalogo/medicos'),
   pacientes: () => pedir('GET', '/api/catalogo/pacientes'),
+  sedes: () => pedir('GET', '/api/catalogo/sedes'),
+  sedesDetalle: () => pedir('GET', '/api/sedes'),
+  crearSede: cuerpo => pedir('POST', '/api/sedes', { body: cuerpo }),
+  actualizarSede: (id, cuerpo) => pedir('PUT', `/api/sedes/${id}`, { body: cuerpo }),
+  eliminarSede: id => pedir('DELETE', `/api/sedes/${id}`),
+  crearPaciente: cuerpo => pedir('POST', '/api/pacientes', { body: cuerpo }),
+  especialidades: () => pedir('GET', '/api/especialidades'),
+  crearEspecialidad: cuerpo => pedir('POST', '/api/especialidades', { body: cuerpo }),
+  actualizarEspecialidad: (id, cuerpo) => pedir('PUT', `/api/especialidades/${id}`, { body: cuerpo }),
+  eliminarEspecialidad: id => pedir('DELETE', `/api/especialidades/${id}`),
+  medicosAdmin: () => pedir('GET', '/api/medicos'),
+  crearMedico: cuerpo => pedir('POST', '/api/medicos', { body: cuerpo }),
+  actualizarMedico: (id, cuerpo) => pedir('PUT', `/api/medicos/${id}`, { body: cuerpo }),
   horasLibres: (medicoId, fecha) => pedir('GET', `/api/catalogo/medicos/${medicoId}/horas-libres`, { params: { fecha } })
 };
 
@@ -72,3 +86,6 @@ export async function medicosEnCache() {
   if (!catalogoMedicos) catalogoMedicos = await api.medicos();
   return catalogoMedicos;
 }
+
+/** Descarta el catálogo guardado (tras crear o editar médicos y especialidades). */
+export function olvidarMedicos() { catalogoMedicos = null; }

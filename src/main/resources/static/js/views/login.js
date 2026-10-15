@@ -9,7 +9,7 @@ const DEMO = [
 ];
 const CLAVE_DEMO = 'Medicita2026*';
 
-export function pintarLogin(app, alEntrar, alternarTema) {
+export function pintarLogin(app, alEntrar, alternarTema, alRegistrarse) {
   app.innerHTML = `
     <main class="login">
       <section class="login__marca" aria-hidden="true">
@@ -37,6 +37,7 @@ export function pintarLogin(app, alEntrar, alternarTema) {
           <p id="error" class="alerta alerta--error" role="alert" hidden></p>
           <p id="espera" class="alerta alerta--info" hidden>El servidor gratuito puede tardar hasta un minuto en despertar. Gracias por esperar…</p>
           <button class="btn btn--primario btn--ancho" id="entrar" type="submit">Entrar</button>
+          <p class="login__alt">¿Eres paciente y aún no tienes cuenta? <button type="button" class="btn btn--texto" id="registrarse">Crear cuenta</button></p>
           <details class="demo">
             <summary>Cuentas de demostración</summary>
             <p class="tenue">Toca una para rellenar el formulario. Contraseña: <code>${esc(CLAVE_DEMO)}</code></p>
@@ -48,6 +49,7 @@ export function pintarLogin(app, alEntrar, alternarTema) {
 
   const $ = s => app.querySelector(s);
   $('#tema').addEventListener('click', alternarTema);
+  $('#registrarse').addEventListener('click', alRegistrarse);
   $('#ver').addEventListener('click', e => {
     const campo = $('#password');
     const visible = campo.type === 'text';

@@ -18,4 +18,6 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
            ORDER BY u.apellidos, u.nombres
            """)
     List<Paciente> listarConUsuario();
+
+    boolean existsByDni(String dni);
 }

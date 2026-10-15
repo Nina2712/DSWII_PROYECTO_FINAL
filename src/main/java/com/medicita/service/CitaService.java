@@ -110,6 +110,9 @@ public class CitaService {
         Paciente paciente = resolverPaciente(actor, request.pacienteId());
         Medico medico = medicoRepository.findById(request.medicoId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Médico no encontrado: " + request.medicoId()));
+        if (!medico.getUsuario().isActivo()) {
+            throw new ReglaNegocioException("El médico no está disponible para nuevas citas");
+        }
 
         validarFechaYDisponibilidad(medico, paciente, request.fechaHora(), null);
 

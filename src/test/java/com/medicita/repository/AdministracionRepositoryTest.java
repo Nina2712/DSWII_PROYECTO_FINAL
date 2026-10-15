@@ -1,0 +1,155 @@
+package com.medicita.repository;
+
+import com.medicita.entity.Especialidad;
+import com.medicita.entity.HorarioDisponible;
+import com.medicita.entity.Medico;
+import com.medicita.entity.Paciente;
+import com.medicita.entity.Sede;
+import com.medicita.enums.DiaSemana;
+import com.medicita.enums.EstadoCita;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@RepositoryTest
+@DisplayName("Consultas de administración: registro, médicos y especialidades (MySQL real)")
+class AdministracionRepositoryTest {
+
+    @Autowired
+    private PacienteRepository pacienteRepository;
+    @Autowired
+    private MedicoRepository medicoRepository;
+    @Autowired
+    private EspecialidadRepository especialidadRepository;
+    @Autowired
+    private HorarioDisponibleRepository horarioRepository;
+    @Autowired
+    private CitaRepository citaRepository;
+    @Autowired
+    private SedeRepository sedeRepository;
+    @Autowired
+    private TestEntityManager em;
+
+    private Especialidad especialidad;
+    private Sede sede;
+    private Medico medico;
+
+    @BeforeEach
+    void prepararDatos() {
+        especialidad = Datos.especialidad(em, "Neurología de prueba");
+        sede = Datos.sede(em);
+        medico = Datos.medico(em, "dr.admin@test.pe", "CMP-A001", especialidad, sede);
+    }
+
+    @Test
+    @DisplayName("Paciente: existsByDni detecta un DNI ya registrado")
+    void existePorDni() {
+        Datos.paciente(em, "pac.admin@test.pe", "70000201");
+
+        assertThat(pacienteRepository.existsByDni("70000201")).isTrue();
+        assertThat(pacienteRepository.existsByDni("70000299")).isFalse();
+    }
+
+    @Test
+    @DisplayName("Especialidad: el nombre se compara sin distinguir mayúsculas y puede excluir al propio registro")
+    void nombreDeEspecialidad() {
+        assertThat(especialidadRepository.existsByNombreIgnoreCase("NEUROLOGÍA DE PRUEBA")).isTrue();
+        assertThat(especialidadRepository.existsByNombreIgnoreCase("Otra cosa")).isFalse();
+        assertThat(especialidadRepository.existsByNombreIgnoreCaseAndIdNot("Neurología de prueba", especialidad.getId())).isFalse();
+        assertThat(especialidadRepository.existsByNombreIgnoreCaseAndIdNot("Neurología de prueba", -1L)).isTrue();
+    }
+
+    @Test
+    @DisplayName("Médico: CMP repetido (sin distinguir mayúsculas) y especialidad en uso")
+    void cmpYEspecialidadEnUso() {
+        assertThat(medicoRepository.existsByCmpIgnoreCase("cmp-a001")).isTrue();
+        assertThat(medicoRepository.existsByCmpIgnoreCaseAndIdNot("cmp-a001", medico.getId())).isFalse();
+        assertThat(medicoRepository.existsByEspecialidadId(especialidad.getId())).isTrue();
+
+        Especialidad vacia = Datos.especialidad(em, "Especialidad sin médicos");
+        assertThat(medicoRepository.existsByEspecialidadId(vacia.getId())).isFalse();
+    }
+
+    @Test
+    @DisplayName("Médicos por especialidad: cuenta agrupando por especialidad")
+    void contarPorEspecialidad() {
+        Datos.medico(em, "dr.admin2@test.pe", "CMP-A002", especialidad, sede);
+        em.clear();
+
+        var fila = medicoRepository.contarPorEspecialidad().stream()
+                .filter(f -> especialidad.getId().equals(f[0])).findFirst().orElseThrow();
+
+        assertThat((Long) fila[1]).isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("Horarios: borrarDeMedico elimina solo los horarios de ese médico")
+    void borrarHorarios() {
+        Medico otro = Datos.medico(em, "dr.admin3@test.pe", "CMP-A003", especialidad, sede);
+        em.persistAndFlush(horario(medico, DiaSemana.LUNES));
+        em.persistAndFlush(horario(medico, DiaSemana.MARTES));
+        em.persistAndFlush(horario(otro, DiaSemana.LUNES));
+        em.clear();
+
+        horarioRepository.borrarDeMedico(medico.getId());
+        em.clear();
+
+        assertThat(horarioRepository.findByMedicoId(medico.getId())).isEmpty();
+        assertThat(horarioRepository.findByMedicoId(otro.getId())).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Citas por atender: cuenta pendientes y confirmadas futuras, no las canceladas ni las atendidas")
+    void citasPorAtender() {
+        Paciente paciente = Datos.paciente(em, "pac.admin2@test.pe", "70000202");
+        Datos.cita(em, paciente, medico, Datos.F1, EstadoCita.PENDIENTE);
+        Datos.cita(em, paciente, medico, Datos.F2, EstadoCita.CONFIRMADA);
+        Datos.cita(em, paciente, medico, Datos.F3, EstadoCita.CANCELADA);
+        Datos.cita(em, paciente, medico, Datos.F3.plusHours(1), EstadoCita.ATENDIDA);
+        em.clear();
+
+        assertThat(citaRepository.contarPorAtenderDelMedico(medico.getId(), LocalDateTime.of(2030, 1, 1, 0, 0))).isEqualTo(2);
+        // Desde después de la primera cita ya solo queda una por atender
+        assertThat(citaRepository.contarPorAtenderDelMedico(medico.getId(), Datos.F1.plusMinutes(1))).isEqualTo(1);
+    }
+
+    private static HorarioDisponible horario(Medico m, DiaSemana dia) {
+        return HorarioDisponible.builder().medico(m).diaSemana(dia)
+                .horaInicio(LocalTime.of(8, 0)).horaFin(LocalTime.of(12, 0)).build();
+    }
+
+    @Test
+    @DisplayName("Sede: el nombre se compara sin distinguir mayúsculas y se sabe si tiene médicos")
+    void sedeEnUso() {
+        assertThat(sedeRepository.existsByNombreIgnoreCase("SEDE DE PRUEBA")).isTrue();
+        assertThat(sedeRepository.existsByNombreIgnoreCase("Sede inexistente")).isFalse();
+        assertThat(sedeRepository.existsByNombreIgnoreCaseAndIdNot("Sede de prueba", sede.getId())).isFalse();
+        assertThat(sedeRepository.existsByNombreIgnoreCaseAndIdNot("Sede de prueba", -1L)).isTrue();
+
+        assertThat(medicoRepository.existsBySedeId(sede.getId())).isTrue();
+        Sede vacia = em.persistAndFlush(Sede.builder().nombre("Sede vacía").direccion("Calle 1").distrito("Surco").build());
+        assertThat(medicoRepository.existsBySedeId(vacia.getId())).isFalse();
+    }
+
+    @Test
+    @DisplayName("Citas por atender del médico: con paciente, ordenadas y sin las canceladas ni las pasadas")
+    void listarPorAtender() {
+        Paciente paciente = Datos.paciente(em, "pac.admin3@test.pe", "70000203");
+        Datos.cita(em, paciente, medico, Datos.F2, EstadoCita.CONFIRMADA);
+        Datos.cita(em, paciente, medico, Datos.F1, EstadoCita.PENDIENTE);
+        Datos.cita(em, paciente, medico, Datos.F3, EstadoCita.CANCELADA);
+        em.clear();
+
+        var citas = citaRepository.listarPorAtenderDelMedico(medico.getId(), LocalDateTime.of(2030, 1, 1, 0, 0));
+
+        assertThat(citas).extracting(c -> c.getFechaHora()).containsExactly(Datos.F1, Datos.F2);
+        assertThat(citas.get(0).getPaciente().getUsuario().getNombres()).isEqualTo("Nombre"); // ya cargado, sin consultas extra
+    }
+}

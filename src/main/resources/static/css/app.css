@@ -331,3 +331,65 @@ dialog::backdrop { background: rgba(8, 15, 30, .55); backdrop-filter: blur(2px);
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media print { .lateral, .topbar, .btn { display: none !important; } .shell { display: block; } }
+
+/* ---------- registro, médicos y especialidades ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.fila-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+.campo__error { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--cancelada); }
+.campo[aria-invalid="true"] { border-color: var(--cancelada-c); }
+.campo[aria-invalid="true"]:focus { outline-color: color-mix(in srgb, var(--cancelada-c) 40%, transparent); }
+.clave-reglas { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--texto-3); }
+.clave-reglas li::before { content: "○"; margin-right: 5px; }
+.clave-reglas li.cumple { color: var(--atendida); }
+.clave-reglas li.cumple::before { content: "✓"; font-weight: 700; }
+.login__form--ancho { width: min(520px, 100%); }
+.login__alt { margin-top: 18px; text-align: center; font-size: 14px; color: var(--texto-2); }
+.login__alt .btn { padding: 4px 6px; font-weight: 700; }
+
+.modal--ancho { width: min(720px, calc(100% - 24px)); }
+.filtro--ancho { flex: 1 1 240px; } .filtro--ancho .campo { width: 100%; }
+.tabla--plana tbody tr { cursor: default; } .tabla--plana tbody tr:hover { background: none; }
+.acciones-fila { display: flex; gap: 8px; justify-content: flex-end; white-space: nowrap; }
+.acciones-fila svg, .btn svg { width: 16px; height: 16px; }
+.btn--peligro-suave:disabled { opacity: .45; }
+.badge--inactivo { background: var(--superficie-2); color: var(--texto-3); border: 1px solid var(--borde); }
+.horarios-res { min-width: 190px; }
+.horario-res { display: block; font-size: 13px; color: var(--texto-2); } .horario-res b { color: var(--texto); font-weight: 650; }
+.inline-nueva { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+.horarios-grupo { border: 0; padding: 0; margin: 0 0 16px; min-width: 0; }
+.horarios-grupo legend { padding: 0; }
+.horarios { display: grid; gap: 8px; margin-top: 10px; }
+.horario-fila { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.horario-fila > * { min-width: 0; }
+.horarios__acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.interruptor { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border: 1px solid var(--borde); border-radius: 12px; background: var(--superficie-2); margin-bottom: 16px; cursor: pointer; }
+.interruptor input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--marca); flex: none; }
+.interruptor small { display: block; color: var(--texto-3); font-size: 13px; margin-top: 2px; }
+#nuevo-paciente { margin-top: 6px; padding-left: 0; }
+
+@media (max-width: 560px) {
+  .fila-campos { grid-template-columns: 1fr; }
+  .horario-fila { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .horario-fila select { grid-column: 1 / 3; }
+  .horario-fila .icono-btn { grid-column: 3; grid-row: 1; justify-self: end; }
+  .acciones-fila { flex-wrap: wrap; }
+}
+
+/* ---------- sedes y cobertura ---------- */
+.etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+.etiqueta { display: inline-block; padding: 2px 10px; border-radius: 999px; background: var(--marca-suave); color: var(--marca-texto); font-size: 12.5px; font-weight: 650; white-space: nowrap; }
+.sedes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; margin-bottom: 16px; }
+.sede { display: flex; flex-direction: column; gap: 14px; }
+.sede__cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sede__cab h2 { font-size: 17px; font-weight: 750; }
+.sede__medicos { display: grid; text-align: right; line-height: 1.1; } .sede__medicos b { font-size: 26px; } .sede__medicos small { color: var(--texto-3); font-size: 12px; }
+.sede__cuerpo { flex: 1; }
+.sede__esp { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.sede__esp li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--superficie-2); border: 1px solid var(--borde); border-radius: 10px; font-size: 14px; }
+.sede__pie { display: flex; gap: 8px; justify-content: flex-end; }
+.matriz .num { text-align: center; }
+.matriz__si { display: inline-grid; place-items: center; min-width: 30px; height: 28px; padding: 0 8px; border-radius: 8px; background: var(--marca-suave); color: var(--marca-texto); font-weight: 700; }
+.matriz__no { color: var(--borde-fuerte); }
+.citas-afectadas { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 6px; max-height: 260px; overflow: auto; }
+.citas-afectadas li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 10px; background: var(--superficie-2); }
+.citas-afectadas small { display: block; color: var(--texto-3); font-size: 13px; }

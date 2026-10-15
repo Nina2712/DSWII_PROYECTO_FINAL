@@ -1,44 +1,12 @@
-// Diálogos reutilizables: confirmación, ficha de la cita (panel lateral) y reserva / reprogramación.
+// Diálogos de la cita: ficha (panel lateral) y reserva / reprogramación.
+// Los diálogos genéricos (crear, confirmar, botón con carga) están en dialogo-base.js.
 import { api, medicosEnCache } from './api.js';
+import { crearDialogo, confirmar, conCarga } from './dialogo-base.js';
+import { abrirNuevoPaciente } from './pacientes.js';
 import {
   esc, badge, toast, icono, ROLES, ESTADOS_FINALES, puede, partes, fechaLarga, fechaCorta, hoyLima, DIAS_CORTOS,
   etiquetaCita, iniciales, diaSemana
 } from './util.js';
-
-function crearDialogo(clase) {
-  const dlg = document.createElement('dialog');
-  dlg.className = clase;
-  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
-  dlg.addEventListener('close', () => dlg.remove());
-  document.body.appendChild(dlg);
-  return dlg;
-}
-
-/** Pregunta de confirmación. Devuelve una promesa con true / false. */
-export function confirmar({ titulo, mensaje, textoOk = 'Confirmar', peligro = false }) {
-  return new Promise(resolve => {
-    const dlg = crearDialogo('modal modal--chico');
-    dlg.innerHTML = `
-      <form method="dialog" class="modal__cuerpo">
-        <h2 class="modal__titulo">${esc(titulo)}</h2>
-        <p class="modal__texto">${esc(mensaje)}</p>
-        <div class="modal__pie">
-          <button class="btn btn--suave" value="no">Volver</button>
-          <button class="btn ${peligro ? 'btn--peligro' : 'btn--primario'}" value="si" autofocus>${esc(textoOk)}</button>
-        </div>
-      </form>`;
-    dlg.addEventListener('close', () => resolve(dlg.returnValue === 'si'));
-    dlg.showModal();
-  });
-}
-
-async function conCarga(boton, tarea) {
-  const original = boton.innerHTML;
-  boton.disabled = true;
-  boton.classList.add('cargando');
-  try { return await tarea(); }
-  finally { boton.disabled = false; boton.classList.remove('cargando'); boton.innerHTML = original; }
-}
 
 // ------------------------------------------------------------------ ficha de la cita
 
@@ -180,7 +148,8 @@ export async function abrirReserva({ ctx, cita = null }) {
           <select id="paciente" class="campo" required>
             <option value="">Selecciona un paciente…</option>
             ${pacientes.map(p => `<option value="${p.id}">${esc(p.nombre)} · DNI ${esc(p.dni)}</option>`).join('')}
-          </select></div>` : ''}
+          </select>
+          <button type="button" class="btn btn--texto" id="nuevo-paciente">${icono.mas}<span>Registrar paciente nuevo</span></button></div>` : ''}
 
       <div class="grupo"><label class="campo__etiqueta" for="medico">Médico</label>
         <select id="medico" class="campo" required ${reprogramando ? 'disabled' : ''}>
@@ -253,6 +222,13 @@ export async function abrirReserva({ ctx, cita = null }) {
   $('#medico').addEventListener('change', e => { estado.medicoId = e.target.value ? Number(e.target.value) : null; mostrarError(''); cargarHoras(); });
   $('#fecha').addEventListener('change', e => { estado.fecha = e.target.value; mostrarError(''); cargarHoras(); });
   $('#paciente')?.addEventListener('change', validar);
+  $('#nuevo-paciente')?.addEventListener('click', () => abrirNuevoPaciente({
+    alCrear: p => {
+      const opcion = new Option(`${p.nombre} · DNI ${p.dni}`, p.id, true, true);
+      $('#paciente').add(opcion);
+      validar();
+    }
+  }));
   $('#horas').addEventListener('change', e => { if (e.target.name === 'hora') { estado.hora = e.target.value; validar(); } });
 
   form.addEventListener('submit', async ev => {

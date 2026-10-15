@@ -2,17 +2,29 @@
 import { api, sesion, alExpirarSesion, medicosEnCache } from './api.js';
 import { esc, ROLES, iniciales, icono, puede, toast } from './util.js';
 import { pintarLogin } from './views/login.js';
+import { pintarRegistro } from './views/registro.js';
+import { pintarPacientes } from './views/pacientes.js';
+import { pintarMedicos } from './views/medicos.js';
+import { pintarEspecialidades } from './views/especialidades.js';
+import { pintarSedes } from './views/sedes.js';
 import { pintarResumen } from './views/resumen.js';
 import { pintarAgenda } from './views/agenda.js';
 import { pintarCitas } from './views/citas.js';
 import { abrirDetalle, abrirReserva } from './dialogos.js';
 
 const app = document.getElementById('app');
-const RUTAS = {
+const TODAS = {
   resumen: { texto: 'Resumen', icono: icono.resumen, pintar: pintarResumen },
   agenda: { texto: 'Agenda', icono: icono.agenda, pintar: pintarAgenda },
-  citas: { texto: 'Citas', icono: icono.citas, pintar: pintarCitas }
+  citas: { texto: 'Citas', icono: icono.citas, pintar: pintarCitas },
+  pacientes: { texto: 'Pacientes', icono: icono.pacientes, pintar: pintarPacientes, permiso: puede.verPacientes },
+  medicos: { texto: 'Médicos', icono: icono.medico, pintar: pintarMedicos, permiso: puede.administrar },
+  especialidades: { texto: 'Especialidades', icono: icono.especialidad, pintar: pintarEspecialidades, permiso: puede.administrar },
+  sedes: { texto: 'Sedes', icono: icono.sede, pintar: pintarSedes, permiso: puede.administrar }
 };
+/** Secciones que puede ver el rol (el servidor vuelve a validar cada llamada). */
+let RUTAS = TODAS;
+const rutasDe = rol => Object.fromEntries(Object.entries(TODAS).filter(([, r]) => !r.permiso || r.permiso(rol)));
 
 let vistaActual = null;   // { recargar() } de la vista abierta
 let ctx = null;
@@ -39,8 +51,15 @@ alExpirarSesion(() => cerrarSesion('Tu sesión expiró. Inicia sesión de nuevo.
 
 function mostrarLogin() {
   history.replaceState(null, '', location.pathname);
-  pintarLogin(app, mostrarApp, alternarTema);
+  pintarLogin(app, mostrarApp, alternarTema, mostrarRegistro);
   aplicarTema(document.documentElement.dataset.theme);
+}
+
+function mostrarRegistro() {
+  history.replaceState(null, '', location.pathname);
+  pintarRegistro(app, mostrarApp, alternarTema, mostrarLogin);
+  aplicarTema(document.documentElement.dataset.theme);
+  window.scrollTo(0, 0);
 }
 
 // ------------------------------------------------------------------------ shell
@@ -48,6 +67,7 @@ function mostrarApp() {
   const usuario = sesion.get();
   if (!usuario || (usuario.expira && usuario.expira < Date.now())) { cerrarSesion(); return; }
   const rol = usuario.rol;
+  RUTAS = rutasDe(rol);
   const nombre = `${usuario.nombres} ${usuario.apellidos}`;
   ctx = {
     usuario, rol,

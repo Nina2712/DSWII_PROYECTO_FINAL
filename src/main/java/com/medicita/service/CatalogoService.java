@@ -3,8 +3,10 @@ package com.medicita.service;
 import com.medicita.dto.HorasLibresResponse;
 import com.medicita.dto.MedicoCatalogoResponse;
 import com.medicita.dto.PacienteCatalogoResponse;
+import com.medicita.dto.SedeResponse;
 import com.medicita.entity.HorarioDisponible;
 import com.medicita.entity.Medico;
+import com.medicita.entity.Sede;
 import com.medicita.entity.Usuario;
 import com.medicita.enums.DiaSemana;
 import com.medicita.enums.EstadoCita;
@@ -13,6 +15,7 @@ import com.medicita.repository.CitaRepository;
 import com.medicita.repository.HorarioDisponibleRepository;
 import com.medicita.repository.MedicoRepository;
 import com.medicita.repository.PacienteRepository;
+import com.medicita.repository.SedeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +42,7 @@ public class CatalogoService {
     private static final DateTimeFormatter HORA = DateTimeFormatter.ofPattern("HH:mm");
 
     private final MedicoRepository medicoRepository;
+    private final SedeRepository sedeRepository;
     private final PacienteRepository pacienteRepository;
     private final HorarioDisponibleRepository horarioRepository;
     private final CitaRepository citaRepository;
@@ -55,10 +59,19 @@ public class CatalogoService {
                             h.getDiaSemana(), h.getHoraInicio().format(HORA), h.getHoraFin().format(HORA)));
         }
         return medicoRepository.listarConDetalle().stream()
+                .filter(m -> m.getUsuario().isActivo())   // los médicos desactivados no reciben citas nuevas
                 .map(m -> new MedicoCatalogoResponse(
                         m.getId(), nombre(m.getUsuario()), m.getCmp(),
                         m.getEspecialidad().getNombre(), m.getSede().getNombre(),
                         horariosPorMedico.getOrDefault(m.getId(), List.of())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SedeResponse> sedes() {
+        return sedeRepository.findAll().stream()
+                .sorted(Comparator.comparing(Sede::getNombre))
+                .map(s -> new SedeResponse(s.getId(), s.getNombre(), s.getDireccion(), s.getDistrito()))
                 .toList();
     }
 

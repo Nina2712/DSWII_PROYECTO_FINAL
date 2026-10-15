@@ -3,6 +3,7 @@ package com.medicita.service;
 import com.medicita.dto.LoginRequest;
 import com.medicita.dto.LoginResponse;
 import com.medicita.dto.PerfilResponse;
+import com.medicita.dto.RegistroPacienteRequest;
 import com.medicita.entity.Usuario;
 import com.medicita.exception.RecursoNoEncontradoException;
 import com.medicita.repository.UsuarioRepository;
@@ -23,6 +24,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UsuarioRepository usuarioRepository;
+    private final PacienteService pacienteService;
 
     public LoginResponse login(LoginRequest request) {
         String email = request.email().trim();
@@ -42,6 +44,12 @@ public class AuthService {
                 usuario.getNombres(),
                 usuario.getApellidos(),
                 usuario.getRol().name());
+    }
+
+    /** Crea la cuenta de un paciente y lo deja con la sesión iniciada. */
+    public LoginResponse registrar(RegistroPacienteRequest request) {
+        pacienteService.crear(request);
+        return login(new LoginRequest(request.email().trim().toLowerCase(), request.password()));
     }
 
     public PerfilResponse perfil(String email) {

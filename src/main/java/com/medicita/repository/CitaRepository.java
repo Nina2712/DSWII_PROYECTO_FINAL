@@ -66,4 +66,27 @@ public interface CitaRepository extends JpaRepository<Cita, Long>, JpaSpecificat
     boolean existeCitaActivaDelPaciente(@Param("pacienteId") Long pacienteId,
                                         @Param("fechaHora") LocalDateTime fechaHora,
                                         @Param("excluirId") Long excluirId);
+
+    /** Citas por atender (pendientes o confirmadas) de un médico desde un momento dado. */
+    @Query("""
+           SELECT COUNT(c) FROM Cita c
+           WHERE c.medico.id = :medicoId
+             AND c.fechaHora >= :desde
+             AND c.estado IN (com.medicita.enums.EstadoCita.PENDIENTE,
+                              com.medicita.enums.EstadoCita.CONFIRMADA)
+           """)
+    long contarPorAtenderDelMedico(@Param("medicoId") Long medicoId, @Param("desde") LocalDateTime desde);
+
+    /** Citas por atender de un médico desde un momento dado, con paciente, de la más próxima a la más lejana. */
+    @Query("""
+           SELECT c FROM Cita c
+           JOIN FETCH c.paciente p
+           JOIN FETCH p.usuario
+           WHERE c.medico.id = :medicoId
+             AND c.fechaHora >= :desde
+             AND c.estado IN (com.medicita.enums.EstadoCita.PENDIENTE,
+                              com.medicita.enums.EstadoCita.CONFIRMADA)
+           ORDER BY c.fechaHora
+           """)
+    List<Cita> listarPorAtenderDelMedico(@Param("medicoId") Long medicoId, @Param("desde") LocalDateTime desde);
 }

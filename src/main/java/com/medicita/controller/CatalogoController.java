@@ -3,6 +3,7 @@ package com.medicita.controller;
 import com.medicita.dto.HorasLibresResponse;
 import com.medicita.dto.MedicoCatalogoResponse;
 import com.medicita.dto.PacienteCatalogoResponse;
+import com.medicita.dto.SedeResponse;
 import com.medicita.service.CatalogoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -33,6 +34,12 @@ public class CatalogoController {
     @Operation(summary = "Médicos con su especialidad, sede y horarios de atención")
     public ResponseEntity<List<MedicoCatalogoResponse>> medicos() {
         return ResponseEntity.ok(catalogoService.medicos());
+    }
+
+    @GetMapping("/sedes")
+    @Operation(summary = "Sedes de la clínica")
+    public ResponseEntity<List<SedeResponse>> sedes() {
+        return ResponseEntity.ok(catalogoService.sedes());
     }
 
     @GetMapping("/pacientes")
