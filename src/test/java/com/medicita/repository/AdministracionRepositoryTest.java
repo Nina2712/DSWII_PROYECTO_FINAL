@@ -198,4 +198,38 @@ class AdministracionRepositoryTest {
         assertThat(citaRepository.proximasDeSede(sede.getId(), LocalDateTime.of(2030, 1, 1, 0, 0),
                 org.springframework.data.domain.PageRequest.of(0, 1))).hasSize(1);
     }
+
+    @Test
+    @DisplayName("Ficha y perfil: se guardan los datos clínicos del paciente y la presentación del médico")
+    void fichaYPerfil() {
+        Paciente paciente = Datos.paciente(em, "pac.ficha@test.pe", "70000205");
+        paciente.setDireccion("Av. Lima 123");
+        paciente.setTipoSeguro(com.medicita.enums.TipoSeguro.ESSALUD);
+        paciente.setAlergias("Penicilina");
+        paciente.setContactoEmergenciaNombre("Luis Torres");
+        paciente.setContactoEmergenciaTelefono("999888777");
+        em.persistAndFlush(paciente);
+        medico.setTelefono("987000111");
+        medico.setDescripcion("Cardiólogo con 10 años de experiencia");
+        em.persistAndFlush(medico);
+        em.clear();
+
+        Paciente leido = pacienteRepository.findById(paciente.getId()).orElseThrow();
+        assertThat(leido.getTipoSeguro()).isEqualTo(com.medicita.enums.TipoSeguro.ESSALUD);
+        assertThat(leido.getAlergias()).isEqualTo("Penicilina");
+        assertThat(leido.getContactoEmergenciaTelefono()).isEqualTo("999888777");
+        assertThat(medicoRepository.findById(medico.getId()).orElseThrow().getDescripcion()).contains("Cardiólogo");
+    }
+
+    @Test
+    @DisplayName("Ficha: un médico solo ve a pacientes con los que tiene o tuvo citas")
+    void medicoConCitasDelPaciente() {
+        Paciente suyo = Datos.paciente(em, "pac.suyo@test.pe", "70000206");
+        Paciente ajeno = Datos.paciente(em, "pac.ajeno@test.pe", "70000207");
+        Datos.cita(em, suyo, medico, Datos.F1, EstadoCita.ATENDIDA);
+        em.clear();
+
+        assertThat(citaRepository.existsByMedicoIdAndPacienteId(medico.getId(), suyo.getId())).isTrue();
+        assertThat(citaRepository.existsByMedicoIdAndPacienteId(medico.getId(), ajeno.getId())).isFalse();
+    }
 }

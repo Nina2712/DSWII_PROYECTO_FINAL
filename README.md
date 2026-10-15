@@ -45,6 +45,9 @@ Swagger: http://localhost:8080/swagger-ui/index.html
 | POST / PUT / DELETE | `/api/sedes[/{id}]` | Crear, editar y eliminar (nombre único; no si tiene médicos) | admin |
 | GET / POST | `/api/usuarios` | Listar y crear administradores y recepcionistas | admin |
 | PUT | `/api/usuarios/{id}` | Editar, cambiar rol, activar/desactivar o restablecer contraseña | admin |
+| GET / PUT | `/api/perfil` | Ver y editar mi perfil (paciente: ficha clínica básica; médico: teléfono y presentación) | autenticado |
+| PUT | `/api/perfil/password` | Cambiar mi contraseña (exige la actual) | autenticado |
+| GET | `/api/pacientes/{id}/ficha` | Alergias, seguro y contacto de emergencia del paciente | médico (solo si tiene/tuvo cita con él), recepción, admin |
 | GET / POST | `/api/medicos` | Listar (incluye desactivados) y dar de alta médicos con sus horarios | admin |
 | GET / PUT | `/api/medicos/{id}` | Ver y editar un médico, reemplazar horarios, activar o desactivar | admin |
 
@@ -104,3 +107,8 @@ Ver [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) (Render + Aiven MySQL, variables de
 - **Usuarios:** un administrador puede crear otros administradores y recepcionistas, cambiarles el rol, desactivarlos y restablecer su contraseña. Reglas: nadie puede cambiar su propio rol ni desactivarse, y siempre debe quedar al menos un administrador activo. Los médicos y pacientes no se gestionan aquí.
 - **Alcance del admin:** ve y gestiona *todas* las sedes (ningún usuario está atado a una sede). Para entender cada una, **Sedes → Ver panel** muestra citas de hoy, por atender, atendidas y % de inasistencia de los últimos 30 días, el equipo médico con su carga y las próximas citas.
 - Control del admin *por sede* (cada admin/recepción limitado a una sede) queda como mejora futura.
+
+### Mi perfil, ficha del paciente y atención
+- **Mi perfil** (todos los roles): cada uno edita sus datos y cambia su contraseña. El paciente completa su ficha (dirección, seguro, **alergias**, contacto de emergencia) y ve sus últimas atenciones con las indicaciones del médico. El médico edita su teléfono y presentación. El correo, el DNI y el CMP no se pueden cambiar desde aquí.
+- **Al atender una cita**, el médico (y recepción/admin) ve la ficha del paciente con las alergias resaltadas. Un médico solo puede consultar la ficha de pacientes con los que tiene o tuvo citas. "Marcar como atendida" guarda también las observaciones escritas.
+- Migración `V3__perfil_y_ficha_clinica.sql`: nuevas columnas en `paciente` y `medico` (todas opcionales).

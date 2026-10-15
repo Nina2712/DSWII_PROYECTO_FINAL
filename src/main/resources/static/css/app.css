@@ -407,3 +407,19 @@ dialog::backdrop { background: rgba(8, 15, 30, .55); backdrop-filter: blur(2px);
 .kpis-sede dd { margin: 2px 0 0; font-size: 26px; font-weight: 750; line-height: 1.15; }
 .kpis-sede small { display: block; margin-top: 2px; font-size: 12px; color: var(--texto-3); }
 @media (max-width: 640px) { .kpis-sede { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---- mi perfil y ficha del paciente ---- */
+.perfil { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+.perfil__ancho { grid-column: 1 / -1; }
+.perfil__pie { display: flex; justify-content: flex-end; }
+.campo-fijo { margin: 0; padding: 9px 0; font-weight: 600; }
+.nota-clinica { margin-top: 4px; color: var(--texto-2); white-space: pre-line; }
+.citas-afectadas--alta { max-height: none; margin: 0; }
+.alergia { margin: 0 0 10px; padding: 9px 12px; border-radius: 10px; background: var(--superficie-2); border: 1px solid var(--borde); font-size: 14px; }
+.alergia b { display: block; font-size: 12.5px; color: var(--texto-3); font-weight: 650; }
+.alergia--si { background: var(--cancelada-bg); border-color: var(--cancelada-c); color: var(--cancelada); }
+.alergia--si b { color: var(--cancelada); }
+.ficha--dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; margin: 0; }
+.ficha--dos dt { font-size: 12.5px; color: var(--texto-3); }
+.ficha--dos dd { margin: 0; font-size: 14px; }
+@media (max-width: 860px) { .perfil { grid-template-columns: minmax(0, 1fr); } }

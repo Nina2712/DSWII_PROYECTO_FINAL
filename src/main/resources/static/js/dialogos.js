@@ -5,7 +5,7 @@ import { crearDialogo, confirmar, conCarga } from './dialogo-base.js';
 import { abrirNuevoPaciente } from './pacientes.js';
 import {
   esc, badge, toast, icono, ROLES, ESTADOS_FINALES, puede, partes, fechaLarga, fechaCorta, hoyLima, DIAS_CORTOS,
-  etiquetaCita, iniciales, diaSemana
+  etiquetaCita, iniciales, diaSemana, TIPOS_SEGURO
 } from './util.js';
 
 // ------------------------------------------------------------------ ficha de la cita
@@ -53,6 +53,8 @@ export function abrirDetalle(cita, ctx) {
           <p class="persona__dato">${esc(cita.especialidad)} · ${esc(cita.sede)}</p></div></div>
       </section>
 
+      ${rol !== 'PACIENTE' ? '<section class="ficha ficha--clinica" id="ficha-paciente" aria-live="polite"><p class="tenue">Cargando ficha del paciente…</p></section>' : ''}
+
       <section class="ficha ficha--lista">
         <div><dt>Motivo</dt><dd>${cita.motivo ? esc(cita.motivo) : '<span class="tenue">Sin motivo indicado</span>'}</dd></div>
         <div><dt>Registrada</dt><dd>${esc(etiquetaCita(cita.creadoEn))}</dd></div>
@@ -91,7 +93,11 @@ export function abrirDetalle(cita, ctx) {
       case 'confirmar':
         return cambiar(boton, () => api.actualizarCita(cita.id, { estado: 'CONFIRMADA' }), 'Cita confirmada');
       case 'atendida':
-        return cambiar(boton, () => api.actualizarCita(cita.id, { estado: 'ATENDIDA' }), 'Cita marcada como atendida');
+        {
+          // si el médico ya escribió observaciones, se guardan junto con la atención
+          const notas = dlg.querySelector('#notas')?.value.trim();
+          return cambiar(boton, () => api.actualizarCita(cita.id, notas ? { estado: 'ATENDIDA', observaciones: notas } : { estado: 'ATENDIDA' }), 'Cita marcada como atendida');
+        }
       case 'noasistio':
         if (await confirmar({ titulo: 'Registrar inasistencia', mensaje: 'El paciente no asistió. El horario quedará libre.', textoOk: 'Registrar' })) {
           return cambiar(boton, () => api.actualizarCita(cita.id, { estado: 'NO_ASISTIO' }), 'Inasistencia registrada');
@@ -115,6 +121,24 @@ export function abrirDetalle(cita, ctx) {
     }
   });
   dlg.showModal();
+  if (rol !== 'PACIENTE') cargarFicha(dlg, cita.pacienteId);
+}
+
+/** Alergias, seguro y contacto de emergencia: lo que el personal necesita saber al atender. */
+async function cargarFicha(dlg, pacienteId) {
+  const caja = dlg.querySelector('#ficha-paciente');
+  try {
+    const f = await api.fichaPaciente(pacienteId);
+    const dato = (t, v) => `<div><dt>${t}</dt><dd>${v ? esc(v) : '<span class="tenue">—</span>'}</dd></div>`;
+    caja.innerHTML = `
+      <p class="alergia ${f.alergias ? 'alergia--si' : ''}"><b>Alergias</b>${f.alergias ? esc(f.alergias) : 'Sin alergias registradas'}</p>
+      <dl class="ficha--lista ficha--dos">
+        ${dato('Edad', f.edad != null ? `${f.edad} años` : '')}
+        ${dato('Seguro', f.tipoSeguro ? TIPOS_SEGURO[f.tipoSeguro] : '')}
+        ${dato('Teléfono', f.telefono)}
+        ${dato('Contacto de emergencia', [f.contactoEmergenciaNombre, f.contactoEmergenciaTelefono].filter(Boolean).join(' · '))}
+      </dl>`;
+  } catch { caja.remove(); }
 }
 
 // ------------------------------------------------------------ reserva / reprogramación

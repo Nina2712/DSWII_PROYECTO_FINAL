@@ -37,4 +37,10 @@ public class Medico extends BaseEntity {
     @Column(nullable = false, unique = true, length = 10)
     @ToString.Include
     private String cmp;
+
+    @Column(length = 15)
+    private String telefono;
+
+    @Column(length = 500)
+    private String descripcion;
 }

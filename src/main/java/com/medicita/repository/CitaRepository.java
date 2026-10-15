@@ -33,6 +33,9 @@ public interface CitaRepository extends JpaRepository<Cita, Long>, JpaSpecificat
 
     long countByEstado(EstadoCita estado);
 
+    /** ¿El médico tiene o tuvo alguna cita con ese paciente? (para decidir si puede ver su ficha). */
+    boolean existsByMedicoIdAndPacienteId(Long medicoId, Long pacienteId);
+
     @Query("""
            SELECT COUNT(c) > 0 FROM Cita c
            WHERE c.medico.id = :medicoId

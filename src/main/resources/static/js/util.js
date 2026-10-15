@@ -9,6 +9,8 @@ export const ROLES = {
   ADMIN: 'Administrador', RECEPCIONISTA: 'Recepción', MEDICO: 'Médico', PACIENTE: 'Paciente'
 };
 
+export const TIPOS_SEGURO = { PARTICULAR: 'Particular', ESSALUD: 'EsSalud', EPS: 'EPS', SEGURO_PRIVADO: 'Seguro privado' };
+
 export const ESTADOS = {
   PENDIENTE: { texto: 'Pendiente', clase: 'pendiente' },
   CONFIRMADA: { texto: 'Confirmada', clase: 'confirmada' },
@@ -118,6 +120,7 @@ export const icono = {
   medico: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4zM6 10V7H4v3H1v2h3v3h2v-3h3v-2z"/></svg>',
   especialidad: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg>',
   sede: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 7v2h18V7zM5 11v8H3v2h18v-2h-2v-8h-2v8h-3v-8h-2v8h-2v-8H9v8H7v-8z"/></svg>',
+  perfil: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-8 1.7-8 5v1h16v-1c0-3.3-4.7-5-8-5z"/></svg>',
   editar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.3V21h3.7L17.8 9.9l-3.7-3.7zM20.7 7a1 1 0 0 0 0-1.4l-2.3-2.3a1 1 0 0 0-1.4 0l-1.8 1.8 3.7 3.7z"/></svg>',
   buscar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>',
   basura: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg>',

@@ -35,4 +35,20 @@ public class Paciente extends BaseEntity {
 
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
+
+    @Column(length = 200)
+    private String direccion;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_seguro", length = 20)
+    private TipoSeguro tipoSeguro;
+
+    @Column(length = 500)
+    private String alergias;
+
+    @Column(name = "contacto_emergencia_nombre", length = 100)
+    private String contactoEmergenciaNombre;
+
+    @Column(name = "contacto_emergencia_telefono", length = 15)
+    private String contactoEmergenciaTelefono;
 }
