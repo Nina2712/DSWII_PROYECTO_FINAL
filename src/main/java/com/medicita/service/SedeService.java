@@ -2,21 +2,32 @@ package com.medicita.service;
 
 import com.medicita.dto.SedeDetalleResponse;
 import com.medicita.dto.SedeRequest;
+import com.medicita.dto.SedeResumenResponse;
+import com.medicita.entity.Cita;
 import com.medicita.entity.Medico;
 import com.medicita.entity.Sede;
+import com.medicita.enums.EstadoCita;
 import com.medicita.exception.RecursoNoEncontradoException;
 import com.medicita.exception.ReglaNegocioException;
+import com.medicita.repository.CitaRepository;
 import com.medicita.repository.MedicoRepository;
 import com.medicita.repository.SedeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** Sedes de la clínica: listado con sus especialidades y administración (solo ADMIN). */
 @Slf4j
@@ -24,8 +35,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SedeService {
 
+    private static final int PROXIMAS = 8;
+
     private final SedeRepository sedeRepository;
     private final MedicoRepository medicoRepository;
+    private final CitaRepository citaRepository;
+    private final Clock clock;
 
     @Transactional(readOnly = true)
     public List<SedeDetalleResponse> listar() {
@@ -34,6 +49,75 @@ public class SedeService {
                 .sorted(Comparator.comparing(s -> s.getNombre().toLowerCase()))
                 .map(s -> aRespuesta(s, medicos))
                 .toList();
+    }
+
+    /** Panel de una sede: carga de hoy, citas por atender, resultados de 30 días, equipo médico y próximas citas. */
+    @Transactional(readOnly = true)
+    public SedeResumenResponse resumen(Long id) {
+        Sede s = buscar(id);
+        LocalDateTime ahora = LocalDateTime.now(clock);
+        LocalDate hoy = ahora.toLocalDate();
+        LocalDateTime inicioHoy = hoy.atStartOfDay();
+        LocalDateTime finHoy = hoy.plusDays(1).atStartOfDay();
+        LocalDateTime desde30 = hoy.minusDays(29).atStartOfDay();
+        LocalDateTime lejano = ahora.plusYears(5);
+
+        Set<EstadoCita> activasHoy = Set.of(EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA, EstadoCita.ATENDIDA);
+        Set<EstadoCita> porAtender = Set.of(EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA);
+
+        Map<EstadoCita, Long> hoyPorEstado = contarPorEstado(id, inicioHoy, finHoy);
+        Map<EstadoCita, Long> mes = contarPorEstado(id, desde30, finHoy);
+        long citasHoy = activasHoy.stream().mapToLong(e -> hoyPorEstado.getOrDefault(e, 0L)).sum();
+        Map<EstadoCita, Long> futuras = contarPorEstado(id, ahora, lejano);
+        long pendientes = porAtender.stream().mapToLong(e -> futuras.getOrDefault(e, 0L)).sum();
+
+        Map<Long, Long> hoyPorMedico = contarPorMedico(id, inicioHoy, finHoy, activasHoy);
+        Map<Long, Long> pendientesPorMedico = contarPorMedico(id, ahora, lejano, porAtender);
+
+        List<SedeResumenResponse.MedicoDeSede> medicos = medicoRepository.listarConDetalle().stream()
+                .filter(m -> m.getSede().getId().equals(id))
+                .sorted(Comparator.comparing((Medico m) -> !m.getUsuario().isActivo())
+                        .thenComparing(m -> m.getUsuario().getApellidos().toLowerCase()))
+                .map(m -> new SedeResumenResponse.MedicoDeSede(m.getId(),
+                        m.getUsuario().getNombres() + " " + m.getUsuario().getApellidos(),
+                        m.getEspecialidad().getNombre(), m.getCmp(), m.getUsuario().isActivo(),
+                        hoyPorMedico.getOrDefault(m.getId(), 0L), pendientesPorMedico.getOrDefault(m.getId(), 0L)))
+                .toList();
+
+        List<SedeResumenResponse.ProximaCita> proximas = citaRepository
+                .proximasDeSede(id, ahora, PageRequest.of(0, PROXIMAS)).stream()
+                .map(SedeService::aProxima)
+                .toList();
+
+        return new SedeResumenResponse(s.getId(), s.getNombre(), s.getDireccion(), s.getDistrito(),
+                citasHoy, pendientes,
+                mes.getOrDefault(EstadoCita.ATENDIDA, 0L),
+                mes.getOrDefault(EstadoCita.CANCELADA, 0L),
+                mes.getOrDefault(EstadoCita.NO_ASISTIO, 0L),
+                medicos, proximas);
+    }
+
+    private Map<EstadoCita, Long> contarPorEstado(Long sedeId, LocalDateTime desde, LocalDateTime hasta) {
+        Map<EstadoCita, Long> r = new EnumMap<>(EstadoCita.class);
+        for (Object[] fila : citaRepository.contarPorEstadoEnSede(sedeId, desde, hasta)) {
+            r.put((EstadoCita) fila[0], (Long) fila[1]);
+        }
+        return r;
+    }
+
+    private Map<Long, Long> contarPorMedico(Long sedeId, LocalDateTime desde, LocalDateTime hasta, Set<EstadoCita> estados) {
+        Map<Long, Long> r = new HashMap<>();
+        for (Object[] fila : citaRepository.contarPorMedicoEnSede(sedeId, desde, hasta, estados)) {
+            r.put((Long) fila[0], (Long) fila[1]);
+        }
+        return r;
+    }
+
+    private static SedeResumenResponse.ProximaCita aProxima(Cita c) {
+        return new SedeResumenResponse.ProximaCita(c.getId(), c.getFechaHora(),
+                c.getPaciente().getUsuario().getNombres() + " " + c.getPaciente().getUsuario().getApellidos(),
+                c.getMedico().getUsuario().getNombres() + " " + c.getMedico().getUsuario().getApellidos(),
+                c.getMedico().getEspecialidad().getNombre(), c.getEstado());
     }
 
     @Transactional

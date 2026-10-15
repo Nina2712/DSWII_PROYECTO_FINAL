@@ -152,4 +152,50 @@ class AdministracionRepositoryTest {
         assertThat(citas).extracting(c -> c.getFechaHora()).containsExactly(Datos.F1, Datos.F2);
         assertThat(citas.get(0).getPaciente().getUsuario().getNombres()).isEqualTo("Nombre"); // ya cargado, sin consultas extra
     }
+
+    @Test
+    @DisplayName("Sede: cuenta las citas por estado y por médico solo de esa sede")
+    void conteosPorSede() {
+        Paciente paciente = Datos.paciente(em, "pac.sede@test.pe", "70000203");
+        Sede otraSede = em.persistAndFlush(Sede.builder().nombre("Otra sede").direccion("Calle 2").distrito("Lince").build());
+        Medico deOtraSede = Datos.medico(em, "dr.otra@test.pe", "CMP-A009", especialidad, otraSede);
+        Datos.cita(em, paciente, medico, Datos.F1, EstadoCita.PENDIENTE);
+        Datos.cita(em, paciente, medico, Datos.F2, EstadoCita.ATENDIDA);
+        Datos.cita(em, paciente, medico, Datos.F3, EstadoCita.CANCELADA);
+        Datos.cita(em, paciente, deOtraSede, Datos.F1, EstadoCita.PENDIENTE);
+        em.clear();
+
+        LocalDateTime desde = LocalDateTime.of(2030, 1, 1, 0, 0);
+        LocalDateTime hasta = LocalDateTime.of(2030, 2, 1, 0, 0);
+
+        var porEstado = citaRepository.contarPorEstadoEnSede(sede.getId(), desde, hasta);
+        assertThat(porEstado).hasSize(3);
+        assertThat(porEstado).anySatisfy(f -> {
+            assertThat(f[0]).isEqualTo(EstadoCita.PENDIENTE);
+            assertThat(f[1]).isEqualTo(1L);
+        });
+
+        var porMedico = citaRepository.contarPorMedicoEnSede(sede.getId(), desde, hasta,
+                java.util.List.of(EstadoCita.PENDIENTE, EstadoCita.ATENDIDA));
+        assertThat(porMedico).hasSize(1);
+        assertThat(porMedico.get(0)[0]).isEqualTo(medico.getId());
+        assertThat(porMedico.get(0)[1]).isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("Sede: las próximas citas son solo pendientes o confirmadas, ordenadas y limitadas")
+    void proximasDeSede() {
+        Paciente paciente = Datos.paciente(em, "pac.prox@test.pe", "70000204");
+        Datos.cita(em, paciente, medico, Datos.F2, EstadoCita.CONFIRMADA);
+        Datos.cita(em, paciente, medico, Datos.F1, EstadoCita.PENDIENTE);
+        Datos.cita(em, paciente, medico, Datos.F3, EstadoCita.CANCELADA);
+        em.clear();
+
+        var proximas = citaRepository.proximasDeSede(sede.getId(), LocalDateTime.of(2030, 1, 1, 0, 0),
+                org.springframework.data.domain.PageRequest.of(0, 5));
+
+        assertThat(proximas).extracting(c -> c.getFechaHora()).containsExactly(Datos.F1, Datos.F2);
+        assertThat(citaRepository.proximasDeSede(sede.getId(), LocalDateTime.of(2030, 1, 1, 0, 0),
+                org.springframework.data.domain.PageRequest.of(0, 1))).hasSize(1);
+    }
 }

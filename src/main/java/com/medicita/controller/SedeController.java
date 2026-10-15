@@ -2,6 +2,7 @@ package com.medicita.controller;
 
 import com.medicita.dto.SedeDetalleResponse;
 import com.medicita.dto.SedeRequest;
+import com.medicita.dto.SedeResumenResponse;
 import com.medicita.service.SedeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -35,6 +36,13 @@ public class SedeController {
     @Operation(summary = "Sedes con sus médicos activos y las especialidades que se atienden en cada una")
     public ResponseEntity<List<SedeDetalleResponse>> listar() {
         return ResponseEntity.ok(sedeService.listar());
+    }
+
+    @GetMapping("/{id}/resumen")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Panel de una sede: citas de hoy, por atender, resultados de 30 días, médicos y próximas citas (ADMIN)")
+    public ResponseEntity<SedeResumenResponse> resumen(@PathVariable Long id) {
+        return ResponseEntity.ok(sedeService.resumen(id));
     }
 
     @PostMapping

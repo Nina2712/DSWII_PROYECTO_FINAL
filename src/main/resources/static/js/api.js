@@ -59,6 +59,11 @@ export const api = {
   crearSede: cuerpo => pedir('POST', '/api/sedes', { body: cuerpo }),
   actualizarSede: (id, cuerpo) => pedir('PUT', `/api/sedes/${id}`, { body: cuerpo }),
   eliminarSede: id => pedir('DELETE', `/api/sedes/${id}`),
+  sedeResumen: id => pedir('GET', `/api/sedes/${id}/resumen`),
+
+  usuarios: () => pedir('GET', '/api/usuarios'),
+  crearUsuario: cuerpo => pedir('POST', '/api/usuarios', { body: cuerpo }),
+  actualizarUsuario: (id, cuerpo) => pedir('PUT', `/api/usuarios/${id}`, { body: cuerpo }),
   crearPaciente: cuerpo => pedir('POST', '/api/pacientes', { body: cuerpo }),
   especialidades: () => pedir('GET', '/api/especialidades'),
   crearEspecialidad: cuerpo => pedir('POST', '/api/especialidades', { body: cuerpo }),

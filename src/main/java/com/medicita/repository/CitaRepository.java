@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -89,4 +90,44 @@ public interface CitaRepository extends JpaRepository<Cita, Long>, JpaSpecificat
            ORDER BY c.fechaHora
            """)
     List<Cita> listarPorAtenderDelMedico(@Param("medicoId") Long medicoId, @Param("desde") LocalDateTime desde);
+
+    /** Cantidad de citas de una sede en un rango de fechas, agrupadas por estado: filas [EstadoCita, Long]. */
+    @Query("""
+           SELECT c.estado, COUNT(c) FROM Cita c
+           WHERE c.medico.sede.id = :sedeId
+             AND c.fechaHora >= :desde AND c.fechaHora < :hasta
+           GROUP BY c.estado
+           """)
+    List<Object[]> contarPorEstadoEnSede(@Param("sedeId") Long sedeId,
+                                         @Param("desde") LocalDateTime desde,
+                                         @Param("hasta") LocalDateTime hasta);
+
+    /** Citas de una sede en un rango, con los estados indicados, agrupadas por médico: filas [Long medicoId, Long]. */
+    @Query("""
+           SELECT c.medico.id, COUNT(c) FROM Cita c
+           WHERE c.medico.sede.id = :sedeId
+             AND c.fechaHora >= :desde AND c.fechaHora < :hasta
+             AND c.estado IN :estados
+           GROUP BY c.medico.id
+           """)
+    List<Object[]> contarPorMedicoEnSede(@Param("sedeId") Long sedeId,
+                                         @Param("desde") LocalDateTime desde,
+                                         @Param("hasta") LocalDateTime hasta,
+                                         @Param("estados") Collection<EstadoCita> estados);
+
+    /** Próximas citas por atender de una sede (pendientes o confirmadas), de la más cercana a la más lejana. */
+    @Query("""
+           SELECT c FROM Cita c
+           JOIN FETCH c.paciente p
+           JOIN FETCH p.usuario
+           JOIN FETCH c.medico m
+           JOIN FETCH m.usuario
+           JOIN FETCH m.especialidad
+           WHERE m.sede.id = :sedeId
+             AND c.fechaHora >= :desde
+             AND c.estado IN (com.medicita.enums.EstadoCita.PENDIENTE,
+                              com.medicita.enums.EstadoCita.CONFIRMADA)
+           ORDER BY c.fechaHora
+           """)
+    List<Cita> proximasDeSede(@Param("sedeId") Long sedeId, @Param("desde") LocalDateTime desde, Pageable pageable);
 }

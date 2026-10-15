@@ -41,7 +41,10 @@ Swagger: http://localhost:8080/swagger-ui/index.html
 | GET | `/api/especialidades` | Especialidades con médicos activos y sedes donde se atienden | todos |
 | POST / PUT / DELETE | `/api/especialidades[/{id}]` | Crear, editar y eliminar (no si tiene médicos) | admin |
 | GET | `/api/sedes` | Sedes con sus médicos y las especialidades que ofrece cada una | autenticado |
+| GET | `/api/sedes/{id}/resumen` | Panel de la sede: citas de hoy, por atender, resultados de 30 días, médicos y próximas citas | admin |
 | POST / PUT / DELETE | `/api/sedes[/{id}]` | Crear, editar y eliminar (nombre único; no si tiene médicos) | admin |
+| GET / POST | `/api/usuarios` | Listar y crear administradores y recepcionistas | admin |
+| PUT | `/api/usuarios/{id}` | Editar, cambiar rol, activar/desactivar o restablecer contraseña | admin |
 | GET / POST | `/api/medicos` | Listar (incluye desactivados) y dar de alta médicos con sus horarios | admin |
 | GET / PUT | `/api/medicos/{id}` | Ver y editar un médico, reemplazar horarios, activar o desactivar | admin |
 
@@ -96,3 +99,8 @@ Ver [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) (Render + Aiven MySQL, variables de
 ### Sedes y cambios de horario
 - La vista **Sedes** (admin) muestra por sede su dirección, los médicos activos y qué especialidades ofrece, más una matriz de cobertura especialidad × sede. En **Especialidades** aparece en qué sedes se atiende cada una.
 - Al guardar un horario nuevo para un médico, la respuesta incluye `citasFueraDeHorario`: las citas PENDIENTE/CONFIRMADA que ya no caben en sus tramos. El sistema **no las cancela ni las mueve**; solo avisa para que recepción las reprograme.
+
+### Personal del sistema y panel por sede (admin)
+- **Usuarios:** un administrador puede crear otros administradores y recepcionistas, cambiarles el rol, desactivarlos y restablecer su contraseña. Reglas: nadie puede cambiar su propio rol ni desactivarse, y siempre debe quedar al menos un administrador activo. Los médicos y pacientes no se gestionan aquí.
+- **Alcance del admin:** ve y gestiona *todas* las sedes (ningún usuario está atado a una sede). Para entender cada una, **Sedes → Ver panel** muestra citas de hoy, por atender, atendidas y % de inasistencia de los últimos 30 días, el equipo médico con su carga y las próximas citas.
+- Control del admin *por sede* (cada admin/recepción limitado a una sede) queda como mejora futura.

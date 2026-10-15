@@ -7,6 +7,7 @@ import { pintarPacientes } from './views/pacientes.js';
 import { pintarMedicos } from './views/medicos.js';
 import { pintarEspecialidades } from './views/especialidades.js';
 import { pintarSedes } from './views/sedes.js';
+import { pintarUsuarios } from './views/usuarios.js';
 import { pintarResumen } from './views/resumen.js';
 import { pintarAgenda } from './views/agenda.js';
 import { pintarCitas } from './views/citas.js';
@@ -20,7 +21,8 @@ const TODAS = {
   pacientes: { texto: 'Pacientes', icono: icono.pacientes, pintar: pintarPacientes, permiso: puede.verPacientes },
   medicos: { texto: 'Médicos', icono: icono.medico, pintar: pintarMedicos, permiso: puede.administrar },
   especialidades: { texto: 'Especialidades', icono: icono.especialidad, pintar: pintarEspecialidades, permiso: puede.administrar },
-  sedes: { texto: 'Sedes', icono: icono.sede, pintar: pintarSedes, permiso: puede.administrar }
+  sedes: { texto: 'Sedes', icono: icono.sede, pintar: pintarSedes, permiso: puede.administrar },
+  usuarios: { texto: 'Usuarios', icono: icono.pacientes, pintar: pintarUsuarios, permiso: puede.administrar }
 };
 /** Secciones que puede ver el rol (el servidor vuelve a validar cada llamada). */
 let RUTAS = TODAS;

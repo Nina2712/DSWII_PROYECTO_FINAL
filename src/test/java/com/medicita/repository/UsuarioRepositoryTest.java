@@ -125,4 +125,23 @@ class UsuarioRepositoryTest {
             usuarioRepository.flush();
         }).isInstanceOf(DataIntegrityViolationException.class);
     }
+
+    @Test
+    @DisplayName("Personal: lista solo los roles pedidos y cuenta los administradores activos")
+    void personalYAdministradoresActivos() {
+        long adminsAntes = usuarioRepository.countByRolAndActivoTrue(Rol.ADMIN);
+        usuarioRepository.saveAndFlush(nuevo("admin2@test.pe", Rol.ADMIN));
+        Usuario inactivo = nuevo("admin3@test.pe", Rol.ADMIN);
+        inactivo.setActivo(false);
+        usuarioRepository.saveAndFlush(inactivo);
+        usuarioRepository.saveAndFlush(nuevo("recep@test.pe", Rol.RECEPCIONISTA));
+        usuarioRepository.saveAndFlush(nuevo("paciente@test.pe", Rol.PACIENTE));
+        em.clear();
+
+        assertThat(usuarioRepository.countByRolAndActivoTrue(Rol.ADMIN)).isEqualTo(adminsAntes + 1);
+        assertThat(usuarioRepository.findByRolInOrderByNombresAscApellidosAsc(java.util.List.of(Rol.ADMIN, Rol.RECEPCIONISTA)))
+                .extracting(Usuario::getEmail)
+                .contains("admin2@test.pe", "admin3@test.pe", "recep@test.pe")
+                .doesNotContain("paciente@test.pe");
+    }
 }

@@ -349,7 +349,8 @@ dialog::backdrop { background: rgba(8, 15, 30, .55); backdrop-filter: blur(2px);
 .modal--ancho { width: min(720px, calc(100% - 24px)); }
 .filtro--ancho { flex: 1 1 240px; } .filtro--ancho .campo { width: 100%; }
 .tabla--plana tbody tr { cursor: default; } .tabla--plana tbody tr:hover { background: none; }
-.acciones-fila { display: flex; gap: 8px; justify-content: flex-end; white-space: nowrap; }
+.acciones-fila { text-align: right; white-space: nowrap; }
+.acciones-fila .btn + .btn { margin-left: 8px; }
 .acciones-fila svg, .btn svg { width: 16px; height: 16px; }
 .btn--peligro-suave:disabled { opacity: .45; }
 .badge--inactivo { background: var(--superficie-2); color: var(--texto-3); border: 1px solid var(--borde); }
@@ -372,7 +373,8 @@ dialog::backdrop { background: rgba(8, 15, 30, .55); backdrop-filter: blur(2px);
   .horario-fila { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
   .horario-fila select { grid-column: 1 / 3; }
   .horario-fila .icono-btn { grid-column: 3; grid-row: 1; justify-self: end; }
-  .acciones-fila { flex-wrap: wrap; }
+  .acciones-fila { white-space: normal; }
+  .acciones-fila .btn { margin-bottom: 4px; }
 }
 
 /* ---------- sedes y cobertura ---------- */
@@ -393,3 +395,15 @@ dialog::backdrop { background: rgba(8, 15, 30, .55); backdrop-filter: blur(2px);
 .citas-afectadas { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 6px; max-height: 260px; overflow: auto; }
 .citas-afectadas li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 10px; background: var(--superficie-2); }
 .citas-afectadas small { display: block; color: var(--texto-3); font-size: 13px; }
+
+/* ---- panel de sede y usuarios ---- */
+.nota { margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; background: var(--superficie-2); border: 1px solid var(--borde); color: var(--texto-2); font-size: 14px; }
+.bloque { display: block; }
+.fila--inactiva td { opacity: .6; }
+.modal__seccion { margin: 20px 0 8px; font-size: 15px; }
+.kpis-sede { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.kpis-sede > div { padding: 12px 14px; border: 1px solid var(--borde); border-radius: 12px; background: var(--superficie-2); min-width: 0; }
+.kpis-sede dt { font-size: 13px; color: var(--texto-2); }
+.kpis-sede dd { margin: 2px 0 0; font-size: 26px; font-weight: 750; line-height: 1.15; }
+.kpis-sede small { display: block; margin-top: 2px; font-size: 12px; color: var(--texto-3); }
+@media (max-width: 640px) { .kpis-sede { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
