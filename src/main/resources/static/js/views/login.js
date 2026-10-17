@@ -16,11 +16,7 @@ export function pintarLogin(app, alEntrar, alternarTema, alRegistrarse) {
         <div class="login__marca-interior">
           <img src="/img/logo-blanco.svg" alt="" class="login__logo">
           <h1>Reserva y gestión de citas médicas, en un solo lugar.</h1>
-          <ul>
-            <li><b>Agenda sin cruces</b><span>Bloques de 30 minutos validados contra el horario de cada médico.</span></li>
-            <li><b>Una vista para cada rol</b><span>Pacientes, médicos, recepción y administración ven solo lo que les corresponde.</span></li>
-            <li><b>Indicadores al instante</b><span>Asistencia, citas del día y carga por especialidad.</span></li>
-          </ul>
+          
         </div>
       </section>
       <section class="login__panel">

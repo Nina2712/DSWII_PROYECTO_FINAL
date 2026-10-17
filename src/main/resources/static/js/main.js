@@ -1,6 +1,6 @@
 // Punto de entrada del dashboard: sesión, navegación y tema.
 import { api, sesion, alExpirarSesion, medicosEnCache } from './api.js';
-import { esc, ROLES, iniciales, icono, puede, toast } from './util.js';
+import { esc, ROLES, avatar, icono, puede, toast } from './util.js';
 import { pintarLogin } from './views/login.js';
 import { pintarRegistro } from './views/registro.js';
 import { pintarPacientes } from './views/pacientes.js';
@@ -89,8 +89,8 @@ function mostrarApp() {
         </nav>
         ${puede.reservar(rol) ? `<button class="btn btn--primario btn--ancho lateral__nueva" id="nueva">${icono.mas}<span>Nueva cita</span></button>` : ''}
         <div class="lateral__pie">
-          <div class="usuario"><span class="avatar avatar--m">${esc(iniciales(nombre))}</span>
-            <div><b>${esc(nombre)}</b><small>${esc(ROLES[rol] || rol)}</small></div></div>
+          <div class="usuario"><span id="usuario-avatar">${avatar(nombre, null, 'avatar--m')}</span>
+            <div><b id="usuario-nombre">${esc(nombre)}</b><small>${esc(ROLES[rol] || rol)}</small></div></div>
           <button class="btn btn--suave btn--ancho btn--chico" id="salir">${icono.salir}<span>Cerrar sesión</span></button>
         </div>
       </aside>
@@ -116,6 +116,14 @@ function mostrarApp() {
   document.getElementById('salir').addEventListener('click', () => cerrarSesion());
   document.getElementById('nueva')?.addEventListener('click', () => { abrirMenu(false); ctx.nuevaCita(); });
   aplicarTema(document.documentElement.dataset.theme);
+
+  // El menú lateral muestra la foto y el nombre; se actualizan cuando el usuario edita su perfil.
+  const pintarUsuario = (n, foto) => {
+    document.getElementById('usuario-avatar').innerHTML = avatar(n, foto, 'avatar--m');
+    document.getElementById('usuario-nombre').textContent = n;
+  };
+  window.addEventListener('perfil-actualizado', e => pintarUsuario(e.detail.nombre, e.detail.foto));
+  api.perfil().then(p => pintarUsuario(`${p.nombres} ${p.apellidos}`, p.foto)).catch(() => {});
 
   if (!location.hash.startsWith('#/')) location.hash = '#/resumen';
   navegar();

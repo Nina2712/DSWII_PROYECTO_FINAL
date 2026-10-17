@@ -1,5 +1,5 @@
-import { api } from '../api.js';
-import { esc, badge, numero, saludo, fechaLarga, partes, fechaCorta, iniciales, icono, puede } from '../util.js';
+import { api, medicosEnCache } from '../api.js';
+import { esc, badge, numero, saludo, fechaLarga, partes, fechaCorta, iniciales, avatar, icono, puede } from '../util.js';
 import { dona, barrasPorDia, barrasHorizontales, datosEstado } from '../charts.js';
 
 const TEXTO_ALCANCE = {
@@ -18,7 +18,7 @@ function kpi({ titulo, valor, detalle, clase }) {
     </article>`;
 }
 
-function listaProximas(citas, rol) {
+function listaProximas(citas, rol, medicos = []) {
   if (!citas.length) {
     return `<div class="vacio vacio--chico">${icono.vacio}<p>No hay citas próximas.</p></div>`;
   }
@@ -29,7 +29,7 @@ function listaProximas(citas, rol) {
     return `
       <li><button class="proxima" data-cita="${c.id}">
         <span class="proxima__fecha"><b>${esc(p.hora)}</b><small>${esc(fechaCorta(p.fecha))}</small></span>
-        <span class="avatar">${esc(iniciales(quien))}</span>
+        ${rol === 'PACIENTE' ? avatar(quien, medicos.find(m => m.id === c.medicoId)?.foto, 'avatar--medico') : avatar(quien, null)}
         <span class="proxima__texto"><b>${esc(quien)}</b><small>${esc(sub)}</small></span>
         ${badge(c.estado)}
       </button></li>`;
@@ -56,6 +56,10 @@ export async function pintarResumen(cont, ctx) {
     return;
   }
 
+  // el paciente ve la foto del médico con quien tiene cita
+  let medicos = [];
+  if (rol === 'PACIENTE') { try { medicos = await medicosEnCache(); } catch { /* sin fotos, quedan las iniciales */ } }
+
   const k = r.kpis;
   const tasa = k.tasaAsistencia == null ? '—' : `${String(k.tasaAsistencia).replace('.', ',')}%`;
   const kpis = [
@@ -79,7 +83,7 @@ export async function pintarResumen(cont, ctx) {
       </section>
       <section class="tarjeta">
         <header class="tarjeta__cab"><h2>Próximas citas</h2></header>
-        ${listaProximas(r.proximas, rol)}
+        ${listaProximas(r.proximas, rol, medicos)}
       </section>
       <section class="tarjeta">
         <header class="tarjeta__cab"><h2>Por especialidad</h2><span class="tenue">Sin canceladas</span></header>

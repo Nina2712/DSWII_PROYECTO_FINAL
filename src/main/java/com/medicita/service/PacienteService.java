@@ -1,5 +1,6 @@
 package com.medicita.service;
 
+import com.medicita.dto.AtencionResponse;
 import com.medicita.dto.FichaPacienteResponse;
 import com.medicita.dto.PacienteCatalogoResponse;
 import com.medicita.dto.RegistroPacienteRequest;
@@ -14,6 +15,7 @@ import com.medicita.repository.PacienteRepository;
 import com.medicita.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.List;
 
 /** Alta de pacientes: la comparten el registro propio (público) y el alta hecha por recepción. */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PacienteService {
+
+    private static final int MAX_HISTORIAL = 50;
 
     private final UsuarioRepository usuarioRepository;
     private final PacienteRepository pacienteRepository;
@@ -91,6 +96,31 @@ public class PacienteService {
         return new FichaPacienteResponse(p.getId(),
                 p.getUsuario().getNombres() + " " + p.getUsuario().getApellidos(), p.getDni(),
                 p.getFechaNacimiento(), edad, p.getTelefono(), p.getDireccion(), p.getTipoSeguro(),
-                p.getAlergias(), p.getContactoEmergenciaNombre(), p.getContactoEmergenciaTelefono());
+                p.getAlergias(), p.getContactoEmergenciaNombre(), p.getContactoEmergenciaTelefono(),
+                p.getUsuario().getFoto());
+    }
+
+    /**
+     * Historial clínico: las atenciones ya realizadas al paciente, de la más reciente a la más antigua, con el
+     * médico y la especialidad de cada una. Lo ve el médico que tiene o tuvo citas con él (aunque otras las haya
+     * atendido otro médico) y el administrador. Solo las propias del médico son editables, y eso se hace desde la cita.
+     */
+    @Transactional(readOnly = true)
+    public List<AtencionResponse> historial(Long id) {
+        Actor actor = contexto.actual();
+        if (!pacienteRepository.existsById(id)) {
+            throw new RecursoNoEncontradoException("Paciente no encontrado: " + id);
+        }
+        if (actor.rol() == Rol.MEDICO && (actor.medicoId() == null
+                || !citaRepository.existsByMedicoIdAndPacienteId(actor.medicoId(), id))) {
+            throw new RecursoNoEncontradoException("Paciente no encontrado: " + id);
+        }
+        return citaRepository.historialDelPaciente(id, PageRequest.of(0, MAX_HISTORIAL)).stream()
+                .map(c -> new AtencionResponse(c.getId(), c.getFechaHora(), c.getMedico().getId(),
+                        c.getMedico().getUsuario().getNombres() + " " + c.getMedico().getUsuario().getApellidos(),
+                        c.getMedico().getEspecialidad().getNombre(), c.getMedico().getSede().getNombre(),
+                        c.getMotivo(), c.getObservaciones(),
+                        actor.medicoId() != null && actor.medicoId().equals(c.getMedico().getId())))
+                .toList();
     }
 }

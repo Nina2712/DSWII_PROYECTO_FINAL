@@ -1,6 +1,7 @@
 package com.medicita.controller;
 
 import com.medicita.dto.CambioPasswordRequest;
+import com.medicita.dto.FotoRequest;
 import com.medicita.dto.PerfilCompletoResponse;
 import com.medicita.dto.PerfilUpdateRequest;
 import com.medicita.service.PerfilService;
@@ -36,6 +37,12 @@ public class PerfilController {
             description = "Paciente: ficha (contacto, seguro, alergias, contacto de emergencia). Médico: teléfono y presentación. Todos: nombres y apellidos.")
     public ResponseEntity<PerfilCompletoResponse> actualizar(@Valid @RequestBody PerfilUpdateRequest request) {
         return ResponseEntity.ok(perfilService.actualizar(request));
+    }
+
+    @PutMapping("/foto")
+    @Operation(summary = "Cambiar o quitar mi foto de perfil", description = "JPEG pequeño como data URL; vacía para quitarla")
+    public ResponseEntity<PerfilCompletoResponse> foto(@RequestBody FotoRequest request) {
+        return ResponseEntity.ok(perfilService.actualizarFoto(request.foto()));
     }
 
     @PutMapping("/password")

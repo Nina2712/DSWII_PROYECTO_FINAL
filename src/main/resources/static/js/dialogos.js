@@ -5,7 +5,7 @@ import { crearDialogo, confirmar, conCarga } from './dialogo-base.js';
 import { abrirNuevoPaciente } from './pacientes.js';
 import {
   esc, badge, toast, icono, ROLES, ESTADOS_FINALES, puede, partes, fechaLarga, fechaCorta, hoyLima, DIAS_CORTOS,
-  etiquetaCita, iniciales, diaSemana, TIPOS_SEGURO
+  etiquetaCita, iniciales, avatar, diaSemana, TIPOS_SEGURO
 } from './util.js';
 
 // ------------------------------------------------------------------ ficha de la cita
@@ -30,7 +30,8 @@ export function abrirDetalle(cita, ctx) {
       acciones.push({ id: 'cancelar', texto: 'Cancelar cita', clase: 'btn--peligro-suave' });
     }
   }
-  const editaNotas = (rol === 'MEDICO' || rol === 'ADMIN') && (!final || cita.estado === 'ATENDIDA');
+  // Solo el médico de esta cita escribe las observaciones; el administrador y recepción las leen.
+  const editaNotas = rol === 'MEDICO' && (!final || cita.estado === 'ATENDIDA');
 
   dlg.innerHTML = `
     <article class="panel__contenido">
@@ -45,10 +46,10 @@ export function abrirDetalle(cita, ctx) {
       <div class="panel__estado">${badge(cita.estado)}</div>
 
       <section class="ficha">
-        <div class="persona"><span class="avatar avatar--m">${esc(iniciales(cita.pacienteNombre))}</span>
+        <div class="persona"><span id="avatar-paciente">${avatar(cita.pacienteNombre, null, 'avatar--m')}</span>
           <div><p class="persona__rol">Paciente</p><p class="persona__nombre">${esc(cita.pacienteNombre)}</p>
           <p class="persona__dato">DNI ${esc(cita.pacienteDni)}</p></div></div>
-        <div class="persona"><span class="avatar avatar--m avatar--medico">${esc(iniciales(cita.medicoNombre))}</span>
+        <div class="persona"><span id="avatar-medico">${avatar(cita.medicoNombre, null, 'avatar--m avatar--medico')}</span>
           <div><p class="persona__rol">Médico</p><p class="persona__nombre">${esc(cita.medicoNombre)}</p>
           <p class="persona__dato">${esc(cita.especialidad)} · ${esc(cita.sede)}</p></div></div>
       </section>
@@ -67,6 +68,8 @@ export function abrirDetalle(cita, ctx) {
              <button class="btn btn--suave btn--chico" data-accion="notas">Guardar observaciones</button>`
           : `<p class="notas-texto">${cita.observaciones ? esc(cita.observaciones) : '<span class="tenue">Sin observaciones</span>'}</p>`}
       </section>
+
+      ${rol === 'MEDICO' || rol === 'ADMIN' ? '<section class="ficha historial" id="historial-clinico" aria-live="polite"><p class="tenue">Cargando historial clínico…</p></section>' : ''}
 
       <footer class="panel__pie">
         ${acciones.map(a => `<button class="btn ${a.clase}" data-accion="${a.id}">${esc(a.texto)}</button>`).join('')}
@@ -121,14 +124,22 @@ export function abrirDetalle(cita, ctx) {
     }
   });
   dlg.showModal();
-  if (rol !== 'PACIENTE') cargarFicha(dlg, cita.pacienteId);
+  if (rol !== 'MEDICO') {
+    medicosEnCache().then(lista => {
+      const foto = lista.find(m => m.id === cita.medicoId)?.foto;
+      if (foto) dlg.querySelector('#avatar-medico').innerHTML = avatar(cita.medicoNombre, foto, 'avatar--m avatar--medico');
+    }).catch(() => {});
+  }
+  if (rol !== 'PACIENTE') cargarFicha(dlg, cita);
+  if (rol === 'MEDICO' || rol === 'ADMIN') cargarHistorial(dlg, cita);
 }
 
 /** Alergias, seguro y contacto de emergencia: lo que el personal necesita saber al atender. */
-async function cargarFicha(dlg, pacienteId) {
+async function cargarFicha(dlg, cita) {
   const caja = dlg.querySelector('#ficha-paciente');
   try {
-    const f = await api.fichaPaciente(pacienteId);
+    const f = await api.fichaPaciente(cita.pacienteId);
+    if (f.foto) dlg.querySelector('#avatar-paciente').innerHTML = avatar(cita.pacienteNombre, f.foto, 'avatar--m');
     const dato = (t, v) => `<div><dt>${t}</dt><dd>${v ? esc(v) : '<span class="tenue">—</span>'}</dd></div>`;
     caja.innerHTML = `
       <p class="alergia ${f.alergias ? 'alergia--si' : ''}"><b>Alergias</b>${f.alergias ? esc(f.alergias) : 'Sin alergias registradas'}</p>
@@ -138,6 +149,25 @@ async function cargarFicha(dlg, pacienteId) {
         ${dato('Teléfono', f.telefono)}
         ${dato('Contacto de emergencia', [f.contactoEmergenciaNombre, f.contactoEmergenciaTelefono].filter(Boolean).join(' · '))}
       </dl>`;
+  } catch { caja.remove(); }
+}
+
+/** Historial clínico: atenciones anteriores del paciente con cualquier médico, solo lectura. */
+async function cargarHistorial(dlg, cita) {
+  const caja = dlg.querySelector('#historial-clinico');
+  try {
+    const todas = await api.historialPaciente(cita.pacienteId);
+    const previas = todas.filter(a => a.citaId !== cita.id);
+    caja.innerHTML = `<h3 class="historial__titulo">Historial clínico</h3>` + (previas.length
+      ? `<ol class="historial__lista">${previas.map(a => `
+          <li class="historial__item ${a.propia ? 'historial__item--propia' : ''}">
+            <p class="historial__cab"><b>${esc(etiquetaCita(a.fechaHora))}</b>${a.propia ? '<span class="etiqueta-propia">Tú</span>' : ''}</p>
+            <p class="historial__medico">${esc(a.medicoNombre)} · ${esc(a.especialidad)}<small>${esc(a.sede)}</small></p>
+            ${a.motivo ? `<p class="historial__motivo">Motivo: ${esc(a.motivo)}</p>` : ''}
+            <p class="notas-texto">${a.observaciones ? esc(a.observaciones) : '<span class="tenue">Sin observaciones</span>'}</p>
+          </li>`).join('')}</ol>
+        <p class="campo__ayuda">Solo lectura. Cada médico edita únicamente las observaciones de sus propias citas.</p>`
+      : '<p class="tenue">Es la primera atención registrada de este paciente.</p>');
   } catch { caja.remove(); }
 }
 
@@ -180,6 +210,7 @@ export async function abrirReserva({ ctx, cita = null }) {
           <option value="">Selecciona un médico…</option>
           ${medicos.map(m => `<option value="${m.id}" ${m.id === estado.medicoId ? 'selected' : ''}>${esc(m.nombre)} — ${esc(m.especialidad)} (${esc(m.sede)})</option>`).join('')}
         </select>
+        <div id="medico-vista" class="medico-vista" aria-live="polite"></div>
         <p id="atencion" class="campo__ayuda"></p></div>
 
       <div class="grupo"><label class="campo__etiqueta" for="fecha">Fecha</label>
@@ -220,10 +251,46 @@ export async function abrirReserva({ ctx, cita = null }) {
     return 'Atiende: ' + orden.filter(d => porDia[d]).map(d => `${DIAS_CORTOS[orden.indexOf(d)]} ${porDia[d].join(', ')}`).join(' · ');
   }
 
+  // Foto y datos del médico elegido. Solo el paciente ve el enlace a la mini tarjeta con su perfil.
+  function pintarMedico() {
+    const caja = $('#medico-vista');
+    const m = medicos.find(x => x.id === estado.medicoId);
+    if (!m) { caja.innerHTML = ''; return; }
+    const conTarjeta = rol === 'PACIENTE';
+    caja.innerHTML = `
+      <div class="medico-vista__fila">
+        ${avatar(m.nombre, m.foto, 'avatar--m avatar--medico')}
+        <div class="medico-vista__datos"><b>${esc(m.nombre)}</b><small>${esc(m.especialidad)} · ${esc(m.sede)}</small></div>
+        ${conTarjeta ? '<button type="button" class="btn btn--texto btn--chico" id="ver-medico" aria-expanded="false" aria-controls="medico-tarjeta">Ver perfil del médico</button>' : ''}
+      </div>
+      ${conTarjeta ? `
+        <div class="tarjeta-medico" id="medico-tarjeta" hidden>
+          ${avatar(m.nombre, m.foto, 'avatar--l avatar--medico')}
+          <div class="tarjeta-medico__texto">
+            <h3>${esc(m.nombre)}</h3>
+            <p class="tarjeta-medico__esp">${esc(m.especialidad)}</p>
+            <dl class="tarjeta-medico__lista">
+              <div><dt>Sede</dt><dd>${esc(m.sede)}</dd></div>
+              <div><dt>CMP</dt><dd>${esc(m.cmp)}</dd></div>
+              <div><dt>Atención</dt><dd>${esc(resumenAtencion().replace(/^Atiende: /, ''))}</dd></div>
+            </dl>
+            <p class="tarjeta-medico__desc">${m.descripcion ? esc(m.descripcion) : '<span class="tenue">Este médico aún no ha agregado una presentación.</span>'}</p>
+          </div>
+        </div>` : ''}`;
+    const boton = caja.querySelector('#ver-medico');
+    boton?.addEventListener('click', () => {
+      const tarjeta = caja.querySelector('#medico-tarjeta');
+      tarjeta.hidden = !tarjeta.hidden;
+      boton.setAttribute('aria-expanded', String(!tarjeta.hidden));
+      boton.textContent = tarjeta.hidden ? 'Ver perfil del médico' : 'Ocultar perfil';
+    });
+  }
+
   let pedido = 0;
   async function cargarHoras() {
     estado.hora = null;
     validar();
+    pintarMedico();
     const cont = $('#horas');
     $('#atencion').textContent = resumenAtencion();
     if (!estado.medicoId || !estado.fecha) { cont.innerHTML = '<p class="campo__ayuda">Elige un médico para ver los horarios.</p>'; return; }

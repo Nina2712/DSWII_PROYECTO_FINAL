@@ -72,6 +72,23 @@ public class PerfilService {
         return aRespuesta(u, paciente, medico);
     }
 
+    /** Guarda o quita la foto de perfil. */
+    @Transactional
+    public PerfilCompletoResponse actualizarFoto(String foto) {
+        Fotos.error(foto).ifPresent(m -> {
+            throw new SolicitudInvalidaException(m);
+        });
+        Usuario u = usuario(contexto.actual());
+        u.setFoto(Fotos.normalizar(foto));
+        usuarioRepository.save(u);
+        log.info("Foto de perfil {} por {}", u.getFoto() == null ? "quitada" : "actualizada", u.getEmail());
+        return switch (u.getRol()) {
+            case PACIENTE -> aRespuesta(u, paciente(u), null);
+            case MEDICO -> aRespuesta(u, null, medico(u));
+            case RECEPCIONISTA, ADMIN -> aRespuesta(u, null, null);
+        };
+    }
+
     @Transactional
     public void cambiarPassword(CambioPasswordRequest r) {
         Usuario u = usuario(contexto.actual());
@@ -121,6 +138,7 @@ public class PerfilService {
                 m != null ? m.getCmp() : null,
                 m != null ? m.getEspecialidad().getNombre() : null,
                 m != null ? m.getSede().getNombre() : null,
-                m != null ? m.getDescripcion() : null);
+                m != null ? m.getDescripcion() : null,
+                u.getFoto());
     }
 }

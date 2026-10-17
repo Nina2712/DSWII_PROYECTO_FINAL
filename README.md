@@ -47,6 +47,8 @@ Swagger: http://localhost:8080/swagger-ui/index.html
 | PUT | `/api/usuarios/{id}` | Editar, cambiar rol, activar/desactivar o restablecer contraseña | admin |
 | GET / PUT | `/api/perfil` | Ver y editar mi perfil (paciente: ficha clínica básica; médico: teléfono y presentación) | autenticado |
 | PUT | `/api/perfil/password` | Cambiar mi contraseña (exige la actual) | autenticado |
+| PUT | `/api/perfil/foto` | Cambiar o quitar mi foto (JPEG 128x128 en data URL, máx. 12 000 caracteres) | autenticado |
+| GET | `/api/pacientes/{id}/historial` | Historial clínico: atenciones con cualquier médico, con médico, especialidad y notas; `propia` marca las del médico que consulta | médico (solo si tiene/tuvo cita con el paciente), admin |
 | GET | `/api/pacientes/{id}/ficha` | Alergias, seguro y contacto de emergencia del paciente | médico (solo si tiene/tuvo cita con él), recepción, admin |
 | GET / POST | `/api/medicos` | Listar (incluye desactivados) y dar de alta médicos con sus horarios | admin |
 | GET / PUT | `/api/medicos/{id}` | Ver y editar un médico, reemplazar horarios, activar o desactivar | admin |
@@ -112,3 +114,10 @@ Ver [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) (Render + Aiven MySQL, variables de
 - **Mi perfil** (todos los roles): cada uno edita sus datos y cambia su contraseña. El paciente completa su ficha (dirección, seguro, **alergias**, contacto de emergencia) y ve sus últimas atenciones con las indicaciones del médico. El médico edita su teléfono y presentación. El correo, el DNI y el CMP no se pueden cambiar desde aquí.
 - **Al atender una cita**, el médico (y recepción/admin) ve la ficha del paciente con las alergias resaltadas. Un médico solo puede consultar la ficha de pacientes con los que tiene o tuvo citas. "Marcar como atendida" guarda también las observaciones escritas.
 - Migración `V3__perfil_y_ficha_clinica.sql`: nuevas columnas en `paciente` y `medico` (todas opcionales).
+
+### Edición de perfil, foto e historial clínico
+- **Mi perfil** se ve en solo lectura; "Editar perfil" habilita los campos y muestra "Guardar cambios" / "Cancelar". Al guardar vuelve a solo lectura.
+- **Foto para todos los roles**: el navegador recorta y reduce la imagen a 128x128 JPEG y se guarda en `usuario.foto` (migración `V4__foto_usuario.sql`). Se guarda en la base de datos porque el disco de Render es efímero. Aparece en el menú lateral, en Mi perfil y en la ficha del paciente.
+- **Historial clínico**: al abrir una cita, el médico y el administrador ven las atenciones anteriores del paciente con cualquier médico (fecha, médico, especialidad, sede, motivo y notas), en solo lectura.
+- **Foto del médico al reservar**: el catálogo de médicos (`GET /api/catalogo/medicos`) ahora incluye `foto` y `descripcion`. Al elegir médico en "Nueva cita" todos los roles (paciente, recepción y admin) ven su foto; también aparece en la lista y el detalle de citas y en la lista de médicos del admin. Solo el **paciente** ve el enlace "Ver perfil del médico", que despliega una mini tarjeta (foto, especialidad, sede, CMP, horarios y presentación).
+- **Observaciones clínicas**: solo las escribe el médico de la cita. Recepción y administrador no pueden editarlas (el servidor responde 403).

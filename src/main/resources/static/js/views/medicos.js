@@ -1,6 +1,6 @@
 // Vista "Médicos" (ADMIN): listado con filtros, alta y edición.
 import { api } from '../api.js';
-import { esc, iniciales, icono, numero, DIAS_CORTOS } from '../util.js';
+import { esc, iniciales, avatar, icono, numero, DIAS_CORTOS } from '../util.js';
 import { abrirFormularioMedico } from '../medico-form.js';
 
 const ORDEN = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
@@ -62,7 +62,7 @@ export async function pintarMedicos(cont, ctx) {
         <thead><tr><th>Médico</th><th>Especialidad</th><th>Sede</th><th>Horario de atención</th><th>Estado</th></tr></thead>
         <tbody>${lista.map(m => `
           <tr tabindex="0" data-id="${m.id}" aria-label="Editar a ${esc(m.nombres)} ${esc(m.apellidos)}">
-            <td><span class="celda-persona"><span class="avatar avatar--medico">${esc(iniciales(`${m.nombres} ${m.apellidos}`))}</span>
+            <td><span class="celda-persona">${avatar(`${m.nombres} ${m.apellidos}`, m.foto, 'avatar--medico')}
               <span><b>${esc(m.nombres)} ${esc(m.apellidos)}</b><small>${esc(m.cmp)} · ${esc(m.email)}</small></span></span></td>
             <td>${esc(m.especialidad)}</td>
             <td>${esc(m.sede)}</td>

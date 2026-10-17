@@ -1,5 +1,5 @@
 import { api, medicosEnCache } from '../api.js';
-import { esc, badge, ESTADOS, etiquetaCita, iniciales, icono, puede, numero } from '../util.js';
+import { esc, badge, ESTADOS, etiquetaCita, iniciales, avatar, icono, puede, numero } from '../util.js';
 
 const TAM = 10;
 
@@ -80,7 +80,7 @@ export async function pintarCitas(cont, ctx, estadoPrevio) {
           <tr tabindex="0" data-id="${c.id}">
             <td class="nowrap"><b>${esc(etiquetaCita(c.fechaHora))}</b></td>
             ${rol !== 'PACIENTE' ? `<td><span class="celda-persona"><span class="avatar">${esc(iniciales(c.pacienteNombre))}</span><span>${esc(c.pacienteNombre)}<small>DNI ${esc(c.pacienteDni)}</small></span></span></td>` : ''}
-            ${rol !== 'MEDICO' ? `<td><span class="celda-persona"><span class="avatar avatar--medico">${esc(iniciales(c.medicoNombre))}</span><span>${esc(c.medicoNombre)}<small>${esc(c.especialidad)}</small></span></span></td>` : ''}
+            ${rol !== 'MEDICO' ? `<td><span class="celda-persona">${avatar(c.medicoNombre, medicos.find(m => m.id === c.medicoId)?.foto, 'avatar--medico')}<span>${esc(c.medicoNombre)}<small>${esc(c.especialidad)}</small></span></span></td>` : ''}
             <td>${esc(c.sede)}</td>
             <td>${badge(c.estado)}</td>
             <td class="motivo">${c.motivo ? esc(c.motivo) : '<span class="tenue">—</span>'}</td>

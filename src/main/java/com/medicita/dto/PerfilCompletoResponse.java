@@ -26,5 +26,7 @@ public record PerfilCompletoResponse(
         String cmp,
         String especialidad,
         String sede,
-        String descripcion) {
+        String descripcion,
+        // todos
+        String foto) {
 }

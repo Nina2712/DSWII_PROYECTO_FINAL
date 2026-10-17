@@ -202,6 +202,6 @@ public class MedicoService {
                 m.getId(), u.getNombres(), u.getApellidos(), u.getEmail(), m.getCmp(),
                 m.getEspecialidad().getId(), m.getEspecialidad().getNombre(),
                 m.getSede().getId(), m.getSede().getNombre(),
-                u.isActivo(), tramos, fuera);
+                u.isActivo(), tramos, fuera, u.getFoto());
     }
 }

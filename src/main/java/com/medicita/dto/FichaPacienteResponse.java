@@ -16,5 +16,6 @@ public record FichaPacienteResponse(
         TipoSeguro tipoSeguro,
         String alergias,
         String contactoEmergenciaNombre,
-        String contactoEmergenciaTelefono) {
+        String contactoEmergenciaTelefono,
+        String foto) {
 }

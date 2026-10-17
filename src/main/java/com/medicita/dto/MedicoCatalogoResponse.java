@@ -10,7 +10,9 @@ public record MedicoCatalogoResponse(
         String cmp,
         String especialidad,
         String sede,
-        List<Horario> horarios) {
+        List<Horario> horarios,
+        String descripcion,
+        String foto) {
 
     public record Horario(DiaSemana dia, String inicio, String fin) {
     }

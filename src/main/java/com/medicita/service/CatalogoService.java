@@ -63,7 +63,8 @@ public class CatalogoService {
                 .map(m -> new MedicoCatalogoResponse(
                         m.getId(), nombre(m.getUsuario()), m.getCmp(),
                         m.getEspecialidad().getNombre(), m.getSede().getNombre(),
-                        horariosPorMedico.getOrDefault(m.getId(), List.of())))
+                        horariosPorMedico.getOrDefault(m.getId(), List.of()),
+                        m.getDescripcion(), m.getUsuario().getFoto()))
                 .toList();
     }
 

@@ -232,4 +232,22 @@ class AdministracionRepositoryTest {
         assertThat(citaRepository.existsByMedicoIdAndPacienteId(medico.getId(), suyo.getId())).isTrue();
         assertThat(citaRepository.existsByMedicoIdAndPacienteId(medico.getId(), ajeno.getId())).isFalse();
     }
+
+    @Test
+    @DisplayName("Historial clínico: solo atenciones realizadas, de varios médicos, de la más reciente a la más antigua")
+    void historialDelPaciente() {
+        Paciente paciente = Datos.paciente(em, "pac.hist@test.pe", "70000208");
+        Especialidad otra = Datos.especialidad(em, "Dermatología de prueba");
+        Medico otroMedico = Datos.medico(em, "dr.hist2@test.pe", "CMP-A010", otra, sede);
+        Datos.cita(em, paciente, medico, Datos.F1, EstadoCita.ATENDIDA);
+        Datos.cita(em, paciente, otroMedico, Datos.F2, EstadoCita.ATENDIDA);
+        Datos.cita(em, paciente, medico, Datos.F3, EstadoCita.CONFIRMADA);
+        Datos.cita(em, paciente, medico, Datos.F3.plusHours(2), EstadoCita.CANCELADA);
+        em.clear();
+
+        var h = citaRepository.historialDelPaciente(paciente.getId(), org.springframework.data.domain.PageRequest.of(0, 10));
+
+        assertThat(h).extracting(c -> c.getFechaHora()).containsExactly(Datos.F2, Datos.F1);
+        assertThat(h.get(0).getMedico().getEspecialidad().getNombre()).isEqualTo("Dermatología de prueba");
+    }
 }

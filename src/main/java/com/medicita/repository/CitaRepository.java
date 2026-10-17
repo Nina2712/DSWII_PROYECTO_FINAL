@@ -33,6 +33,19 @@ public interface CitaRepository extends JpaRepository<Cita, Long>, JpaSpecificat
 
     long countByEstado(EstadoCita estado);
 
+    /** Atenciones realizadas a un paciente (de la más reciente a la más antigua), con médico y especialidad. */
+    @Query("""
+           SELECT c FROM Cita c
+           JOIN FETCH c.medico m
+           JOIN FETCH m.usuario
+           JOIN FETCH m.especialidad
+           JOIN FETCH m.sede
+           WHERE c.paciente.id = :pacienteId
+             AND c.estado = com.medicita.enums.EstadoCita.ATENDIDA
+           ORDER BY c.fechaHora DESC
+           """)
+    List<Cita> historialDelPaciente(@Param("pacienteId") Long pacienteId, Pageable pageable);
+
     /** ¿El médico tiene o tuvo alguna cita con ese paciente? (para decidir si puede ver su ficha). */
     boolean existsByMedicoIdAndPacienteId(Long medicoId, Long pacienteId);
 

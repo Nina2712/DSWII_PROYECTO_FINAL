@@ -96,6 +96,41 @@ export function iniciales(nombre) {
   return String(nombre || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
 }
 
+/** Avatar con la foto del usuario o, si no tiene, sus iniciales. `clase` admite avatar--m, avatar--l, avatar--medico. */
+export function avatar(nombre, foto, clase = '') {
+  const c = `avatar ${clase}`.trim();
+  return foto
+    ? `<span class="${c} avatar--foto"><img src="${esc(foto)}" alt=""></span>`
+    : `<span class="${c}">${esc(iniciales(nombre))}</span>`;
+}
+
+const MAX_FOTO = 11500; // caracteres del data URL; el servidor acepta hasta 12000
+
+/** Recorta al centro, reduce a 128x128 y comprime a JPEG hasta que quepa. Devuelve un data URL. */
+export async function procesarFoto(archivo) {
+  if (!archivo || !/^image\/(jpeg|png|webp|gif)$/.test(archivo.type)) throw new Error('Elige una imagen JPG, PNG o WebP.');
+  if (archivo.size > 10 * 1024 * 1024) throw new Error('La imagen pesa más de 10 MB. Elige una más pequeña.');
+  const url = URL.createObjectURL(archivo);
+  try {
+    const img = await new Promise((ok, mal) => {
+      const i = new Image(); i.onload = () => ok(i); i.onerror = () => mal(new Error('No se pudo leer la imagen.')); i.src = url;
+    });
+    const lado = Math.min(img.naturalWidth, img.naturalHeight);
+    const sx = (img.naturalWidth - lado) / 2, sy = (img.naturalHeight - lado) / 2;
+    for (const medida of [128, 96, 64]) {
+      const lienzo = document.createElement('canvas'); lienzo.width = lienzo.height = medida;
+      const g = lienzo.getContext('2d');
+      g.fillStyle = '#fff'; g.fillRect(0, 0, medida, medida);
+      g.drawImage(img, sx, sy, lado, lado, 0, 0, medida, medida);
+      for (let q = 0.85; q >= 0.35; q -= 0.1) {
+        const datos = lienzo.toDataURL('image/jpeg', q);
+        if (datos.length <= MAX_FOTO) return datos;
+      }
+    }
+    throw new Error('No se pudo reducir la imagen. Prueba con otra.');
+  } finally { URL.revokeObjectURL(url); }
+}
+
 export function badge(estado) {
   const e = ESTADOS[estado] || { texto: estado, clase: 'pendiente' };
   return `<span class="badge badge--${e.clase}">${esc(e.texto)}</span>`;

@@ -42,4 +42,8 @@ public class Usuario extends BaseEntity {
     @Builder.Default
     @Column(nullable = false)
     private boolean activo = true;
+
+    /** Foto de perfil como data URL JPEG (ver {@code Fotos}). */
+    @Column(length = 12000)
+    private String foto;
 }

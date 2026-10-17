@@ -91,6 +91,9 @@ textarea.campo { resize: vertical; }
 .punto--atendida { background: var(--atendida-c); } .punto--cancelada { background: var(--cancelada-c); } .punto--noasistio { background: var(--noasistio-c); }
 .avatar { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--marca-suave); color: var(--marca-texto); font-weight: 700; font-size: 12px; flex: none; }
 .avatar--m { width: 44px; height: 44px; font-size: 15px; }
+.avatar--l { width: 88px; height: 88px; font-size: 28px; }
+.avatar--foto { overflow: hidden; background: var(--superficie-2); }
+.avatar--foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .avatar--medico { background: var(--confirmada-bg); color: var(--confirmada); }
 .chip { border: 1px solid var(--borde-fuerte); background: var(--superficie); border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 13px; }
 .chip:hover { border-color: var(--marca); color: var(--marca-texto); }
@@ -423,3 +426,44 @@ dialog::backdrop { background: rgba(8, 15, 30, .55); backdrop-filter: blur(2px);
 .ficha--dos dt { font-size: 12.5px; color: var(--texto-3); }
 .ficha--dos dd { margin: 0; font-size: 14px; }
 @media (max-width: 860px) { .perfil { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- edición de perfil, foto e historial clínico ---- */
+.perfil__campos { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 14px; }
+.perfil__campos:disabled .campo { background: transparent; border-color: transparent; color: var(--texto); padding-left: 0; resize: none; appearance: none; -webkit-appearance: none; opacity: 1; }
+.perfil__pie { gap: 8px; }
+.perfil__foto { display: flex; align-items: center; gap: 18px; }
+.perfil__foto-texto { display: grid; gap: 4px; min-width: 0; }
+.perfil__foto-texto small { color: var(--texto-3); }
+.perfil__foto-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.historial { gap: 10px; }
+.historial__titulo { margin: 0; font-size: 15px; }
+.historial__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-height: 280px; overflow: auto; }
+.historial__item { padding: 10px 12px; border: 1px solid var(--borde); border-radius: 10px; background: var(--superficie); display: grid; gap: 4px; }
+.historial__item--propia { border-left: 3px solid var(--marca-texto); }
+.historial__cab, .historial__medico, .historial__motivo { margin: 0; font-size: 14px; }
+.historial__cab { display: flex; justify-content: space-between; gap: 8px; }
+.historial__medico small { display: block; color: var(--texto-3); font-size: 12.5px; }
+.historial__motivo { color: var(--texto-2, var(--texto-3)); }
+.etiqueta-propia { font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--marca-suave); color: var(--marca-texto); }
+.perfil__campos:disabled .campo { padding-top: 2px; padding-bottom: 2px; height: auto; min-height: 0; field-sizing: content; }
+.perfil__campos:disabled textarea.campo { min-height: 1.5em; }
+.perfil__campos { gap: 10px; }
+.perfil__campos:disabled .campo::placeholder { color: transparent; }
+
+/* ---- médico en la reserva: foto y mini tarjeta ---- */
+.medico-vista { margin-top: 8px; }
+.medico-vista:empty { display: none; }
+.medico-vista__fila { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 1px solid var(--borde); border-radius: 12px; background: var(--superficie-2); }
+.medico-vista__datos { display: grid; min-width: 0; flex: 1; }
+.medico-vista__datos small { color: var(--texto-3); }
+.tarjeta-medico { display: flex; gap: 16px; margin-top: 8px; padding: 14px; border: 1px solid var(--borde); border-radius: 12px; background: var(--superficie); }
+.tarjeta-medico__texto { min-width: 0; display: grid; gap: 6px; }
+.tarjeta-medico h3 { margin: 0; font-size: 16px; }
+.tarjeta-medico__esp { margin: 0; color: var(--marca-texto); font-weight: 600; font-size: 14px; }
+.tarjeta-medico__lista { margin: 0; display: grid; gap: 4px; font-size: 13.5px; }
+.tarjeta-medico__lista div { display: flex; gap: 8px; }
+.tarjeta-medico__lista dt { color: var(--texto-3); min-width: 62px; }
+.tarjeta-medico__lista dd { margin: 0; }
+.tarjeta-medico__desc { margin: 4px 0 0; font-size: 14px; line-height: 1.45; }
+@media (max-width: 520px) { .tarjeta-medico { flex-direction: column; align-items: flex-start; } }
+.citas-afectadas--alta li > span:not(.avatar) { flex: 1; min-width: 0; }

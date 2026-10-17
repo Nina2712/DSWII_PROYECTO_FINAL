@@ -144,7 +144,7 @@ public class CitaService {
 
         boolean soloObservaciones = request.fechaHora() == null && request.motivo() == null && request.estado() == null;
         boolean anotacionClinica = cita.getEstado() == EstadoCita.ATENDIDA && soloObservaciones
-                && (actor.rol() == Rol.MEDICO || actor.rol() == Rol.ADMIN);
+                && actor.rol() == Rol.MEDICO;
         if (FINALES.contains(cita.getEstado()) && !anotacionClinica) {
             throw new ReglaNegocioException("La cita está " + cita.getEstado() + " y ya no se puede modificar");
         }
@@ -242,6 +242,9 @@ public class CitaService {
     private void validarPermisosDeEdicion(Actor actor, CitaUpdateRequest request) {
         if (actor.rol() == Rol.PACIENTE && (request.estado() != null || request.observaciones() != null)) {
             throw new AccessDeniedException("El paciente solo puede reprogramar la cita o cambiar el motivo");
+        }
+        if ((actor.rol() == Rol.RECEPCIONISTA || actor.rol() == Rol.ADMIN) && request.observaciones() != null) {
+            throw new AccessDeniedException("Solo el médico que atiende puede escribir las observaciones clínicas");
         }
         if (actor.rol() == Rol.MEDICO && (request.fechaHora() != null || request.motivo() != null)) {
             throw new AccessDeniedException("El médico solo registra el estado y las observaciones");

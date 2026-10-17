@@ -21,7 +21,8 @@ public record MedicoAdminResponse(
         String sede,
         boolean activo,
         List<Horario> horarios,
-        List<CitaFueraDeHorarioResponse> citasFueraDeHorario) {
+        List<CitaFueraDeHorarioResponse> citasFueraDeHorario,
+        String foto) {
 
     public record Horario(DiaSemana dia, String inicio, String fin) {
     }
