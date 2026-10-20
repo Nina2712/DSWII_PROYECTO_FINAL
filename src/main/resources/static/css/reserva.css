@@ -1,0 +1,25 @@
+/* MediCita · reserva por especialidad: especialidades, médicos con horas libres y aviso de próxima fecha. */
+.espec { border: 0; margin: 0 0 6px; padding: 0; min-width: 0; }
+.espec legend { padding: 0; margin-bottom: 8px; }
+.espec__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.espec__op { position: relative; cursor: pointer; }
+.espec__op input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.espec__op span { display: grid; gap: 1px; padding: 10px 12px; border: 1.5px solid var(--borde); border-radius: 12px; background: var(--superficie); transition: border-color .15s, background .15s, transform .15s; }
+.espec__op b { font-size: 14px; }
+.espec__op small { color: var(--texto-3); font-size: 12.5px; }
+.espec__op:hover span { border-color: var(--borde-fuerte); transform: translateY(-1px); }
+.espec__op input:checked + span { border-color: var(--marca); background: var(--marca-suave); }
+.espec__op input:checked + span b { color: var(--marca-texto); }
+.espec__op input:focus-visible + span { outline: 3px solid var(--marca); outline-offset: 2px; }
+
+.medicos-lista { display: grid; gap: 10px; }
+.medico-opcion { display: grid; gap: 10px; padding: 12px; border: 1.5px solid var(--borde); border-radius: 14px; background: var(--superficie); transition: border-color .2s, box-shadow .2s; }
+.medico-opcion--elegido { border-color: var(--marca); box-shadow: 0 0 0 3px color-mix(in srgb, var(--marca) 14%, transparent); }
+.medico-opcion--sin { background: var(--superficie-2); }
+.medico-opcion--sin .avatar { filter: grayscale(.7); opacity: .75; }
+.medico-opcion__cab { display: flex; align-items: center; gap: 12px; }
+.medico-opcion__sin { margin: 0; font-size: 14px; color: var(--texto-2); }
+.aviso-fecha { display: grid; gap: 8px; justify-items: start; padding: 12px 14px; border-radius: 12px; background: var(--pendiente-bg); color: var(--pendiente); }
+.aviso-fecha p { margin: 0; font-size: 14px; }
+.aviso-fecha .tenue { color: inherit; opacity: .85; }
+.reserva__resumen { margin: 0; min-height: 1.4em; font-size: 14px; font-weight: 650; color: var(--marca-texto); }

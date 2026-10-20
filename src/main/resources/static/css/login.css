@@ -1,0 +1,62 @@
+/* MediCita · pantalla de inicio con fotos de la clínica. Se suma a app.css y solo afecta a .login--vivo. */
+@property --acento { syntax: '<color>'; inherits: true; initial-value: #14b8a6; }
+
+.login--vivo { --acento: #14b8a6; transition: --acento .9s ease; }
+.login--vivo .login__marca { position: relative; overflow: hidden; }
+.login--vivo .login__marca-interior { position: relative; z-index: 1; width: 100%; }
+.login--vivo .login__marca h1 { margin-bottom: 22px; }
+
+/* lado izquierdo: fotos a pantalla completa con paralaje, velo de color y línea de latido */
+.login--vivo .login__marca { --px: 0; --py: 0; align-items: flex-end; padding-bottom: 150px; background: #0a2540; }
+.fotos { position: absolute; inset: -5%; overflow: hidden; transform: translate(calc(var(--px) * -16px), calc(var(--py) * -10px)); transition: transform .5s ease-out; }
+.foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 35% 50%; opacity: 0; transform: scale(1.02); transition: opacity 1.3s ease, transform 9s ease-out; will-change: transform, opacity; }
+.foto.activa { opacity: 1; transform: scale(1.12); }
+.login__velo { position: absolute; inset: 0; background:
+  linear-gradient(180deg, rgba(10, 37, 64, .78) 0%, rgba(10, 37, 64, .25) 38%, rgba(10, 37, 64, .88) 100%),
+  radial-gradient(900px 520px at 8% 0%, color-mix(in srgb, var(--acento) 55%, transparent) 0%, transparent 65%); }
+.login__luz { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .16), transparent 70%); mix-blend-mode: soft-light; }
+.escena { max-width: 520px; }
+.escena__texto { min-height: 5.6em; display: grid; gap: 6px; align-content: start; transition: opacity .26s ease, transform .26s ease; }
+.escena__texto b { font-size: 21px; line-height: 1.25; letter-spacing: -.01em; text-shadow: 0 2px 14px rgba(3, 20, 36, .5); }
+.escena__texto span { color: rgba(255, 255, 255, .9); font-size: 15.5px; line-height: 1.5; text-shadow: 0 1px 10px rgba(3, 20, 36, .5); }
+.escena__texto--cambia { opacity: 0; transform: translateY(6px); }
+.puntos { display: flex; gap: 8px; margin-top: 14px; }
+.puntos i { width: 8px; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .4); transition: width .35s, background .35s; }
+.puntos i.on { width: 26px; background: #fff; }
+
+/* línea de latido sobre la foto */
+.escena__ecg { position: absolute; left: 0; right: 0; bottom: 36px; width: 100%; height: 84px; z-index: 1; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--acento) 80%, transparent)); }
+.escena__ecg path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.escena__ecg .ecg-base { stroke: rgba(255, 255, 255, .28); stroke-width: 1.6; }
+.escena__ecg .ecg-pulso { stroke: color-mix(in srgb, var(--acento) 55%, #fff); stroke-width: 3; stroke-dasharray: 240 760; animation: ecg 3.6s linear infinite; }
+@keyframes ecg { from { stroke-dashoffset: 240; } to { stroke-dashoffset: -760; } }
+
+@media (max-height: 800px) { .login--vivo .login__marca { padding-bottom: 130px; } .escena__texto { min-height: 5em; } }
+@media (prefers-reduced-motion: reduce) {
+  .escena__ecg .ecg-pulso { animation: none; stroke-dasharray: none; }
+  .escena__texto, .login--vivo, .foto, .puntos i { transition: none; }
+  .foto, .foto.activa, .fotos { transform: none; }
+  .login__fondo, .login__fondo img { transition: none; animation: none; }
+  .login__fondo img:first-child { opacity: 1; }
+}
+
+/* lado del formulario: imagen difuminada que se mueve con el puntero + tarjeta de cristal */
+.login--vivo .login__panel { position: relative; overflow: hidden; --bx: 0; --by: 0; }
+.login__fondo { position: absolute; inset: -50px; z-index: 0; filter: blur(24px) saturate(1.15); opacity: .55; transform: translate(calc(var(--bx) * -16px), calc(var(--by) * -12px)); transition: transform .6s ease-out; pointer-events: none; }
+.login__fondo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; animation: fondo-cambia 27s ease-in-out infinite; }
+.login__fondo img:nth-child(2) { animation-delay: 9s; }
+.login__fondo img:nth-child(3) { animation-delay: 18s; }
+@keyframes fondo-cambia { 0% { opacity: 0; } 8% { opacity: 1; } 33% { opacity: 1; } 41%, 100% { opacity: 0; } }
+:root[data-theme="dark"] .login__fondo { opacity: .3; }
+.login--vivo .login__tema { z-index: 2; }
+.login--vivo .login__form {
+  position: relative; z-index: 1; width: min(440px, 100%); padding: 30px 30px 24px;
+  background: color-mix(in srgb, var(--superficie) 80%, transparent);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--borde) 80%, transparent); border-radius: 22px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, .14);
+  transition: box-shadow .25s ease;
+}
+.login--vivo .login__form:focus-within { box-shadow: 0 18px 50px rgba(15, 23, 42, .16), 0 0 0 4px color-mix(in srgb, var(--marca) 16%, transparent); }
+.login--vivo.entrando .escena__ecg .ecg-pulso { animation-duration: .9s; }
+@media (max-width: 480px) { .login--vivo .login__form { padding: 22px 18px 18px; } }

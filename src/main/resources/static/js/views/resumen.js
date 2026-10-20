@@ -1,5 +1,6 @@
 import { api, medicosEnCache } from '../api.js';
 import { esc, badge, numero, saludo, fechaLarga, partes, fechaCorta, iniciales, avatar, icono, puede } from '../util.js';
+import { pintarHero } from '../hero.js';
 import { dona, barrasPorDia, barrasHorizontales, datosEstado } from '../charts.js';
 
 const TEXTO_ALCANCE = {
@@ -39,13 +40,15 @@ function listaProximas(citas, rol, medicos = []) {
 export async function pintarResumen(cont, ctx) {
   const { usuario, rol } = ctx;
   cont.innerHTML = `
-    <header class="pagina__cab">
-      <div><h1 class="pagina__titulo">${esc(saludo())}, ${esc(usuario.nombres.split(' ')[0])}</h1>
-        <p class="pagina__sub">${esc(TEXTO_ALCANCE[rol])} · últimos 30 y próximos 30 días</p></div>
+    <div id="hero-cont"></div>
+    <header class="pagina__cab pagina__cab--resumen">
+      <div><h2 class="pagina__titulo">${esc(TEXTO_ALCANCE[rol])}</h2>
+        <p class="pagina__sub">Últimos 30 y próximos 30 días</p></div>
       ${puede.reservar(rol) ? `<button class="btn btn--primario" data-nueva>${icono.mas}<span>Nueva cita</span></button>` : ''}
     </header>
     <div class="kpis">${'<div class="kpi kpi--carga"><span class="esqueleto"></span></div>'.repeat(4)}</div>
     <div class="rejilla"><div class="tarjeta esqueleto-bloque"></div><div class="tarjeta esqueleto-bloque"></div></div>`;
+  const hero = pintarHero(cont.querySelector('#hero-cont'), ctx);
   cont.querySelector('[data-nueva]')?.addEventListener('click', ctx.nuevaCita);
 
   let r;
@@ -55,6 +58,8 @@ export async function pintarResumen(cont, ctx) {
     cont.querySelector('[data-reintentar]')?.addEventListener('click', () => pintarResumen(cont, ctx));
     return;
   }
+
+  hero.actualizar(r);
 
   // el paciente ve la foto del médico con quien tiene cita
   let medicos = [];

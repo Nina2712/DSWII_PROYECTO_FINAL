@@ -1,5 +1,6 @@
 package com.medicita.controller;
 
+import com.medicita.dto.DisponibilidadMedicoResponse;
 import com.medicita.dto.HorasLibresResponse;
 import com.medicita.dto.MedicoCatalogoResponse;
 import com.medicita.dto.PacienteCatalogoResponse;
@@ -55,5 +56,13 @@ public class CatalogoController {
             @PathVariable Long id,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         return ResponseEntity.ok(catalogoService.horasLibres(id, fecha));
+    }
+
+    @GetMapping("/especialidades/{id}/disponibilidad")
+    @Operation(summary = "Médicos de una especialidad con sus horas libres en una fecha y la próxima fecha libre")
+    public ResponseEntity<List<DisponibilidadMedicoResponse>> disponibilidad(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+        return ResponseEntity.ok(catalogoService.disponibilidad(id, fecha));
     }
 }

@@ -8,6 +8,7 @@ public record MedicoCatalogoResponse(
         Long id,
         String nombre,
         String cmp,
+        Long especialidadId,
         String especialidad,
         String sede,
         List<Horario> horarios,

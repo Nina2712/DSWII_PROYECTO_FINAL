@@ -78,6 +78,7 @@ export const api = {
   medicosAdmin: () => pedir('GET', '/api/medicos'),
   crearMedico: cuerpo => pedir('POST', '/api/medicos', { body: cuerpo }),
   actualizarMedico: (id, cuerpo) => pedir('PUT', `/api/medicos/${id}`, { body: cuerpo }),
+  disponibilidad: (especialidadId, fecha) => pedir('GET', `/api/catalogo/especialidades/${especialidadId}/disponibilidad`, { params: { fecha } }),
   horasLibres: (medicoId, fecha) => pedir('GET', `/api/catalogo/medicos/${medicoId}/horas-libres`, { params: { fecha } })
 };
 

@@ -1,6 +1,6 @@
 // Punto de entrada del dashboard: sesión, navegación y tema.
 import { api, sesion, alExpirarSesion, medicosEnCache } from './api.js';
-import { esc, ROLES, avatar, icono, puede, toast } from './util.js';
+import { esc, ROLES, ZONA, avatar, icono, puede, toast } from './util.js';
 import { pintarLogin } from './views/login.js';
 import { pintarRegistro } from './views/registro.js';
 import { pintarPacientes } from './views/pacientes.js';
@@ -32,6 +32,9 @@ const rutasDe = rol => Object.fromEntries(Object.entries(TODAS).filter(([, r]) =
 
 let vistaActual = null;   // { recargar() } de la vista abierta
 let ctx = null;
+let relojTopbar = null;
+let pintarUsuario = () => {};   // lo define mostrarApp; un solo oyente evita que se acumulen al volver a iniciar sesión
+window.addEventListener('perfil-actualizado', e => pintarUsuario(e.detail.nombre, e.detail.foto));
 
 // ------------------------------------------------------------------------ tema
 function aplicarTema(tema) {
@@ -89,8 +92,8 @@ function mostrarApp() {
         </nav>
         ${puede.reservar(rol) ? `<button class="btn btn--primario btn--ancho lateral__nueva" id="nueva">${icono.mas}<span>Nueva cita</span></button>` : ''}
         <div class="lateral__pie">
-          <div class="usuario"><span id="usuario-avatar">${avatar(nombre, null, 'avatar--m')}</span>
-            <div><b id="usuario-nombre">${esc(nombre)}</b><small>${esc(ROLES[rol] || rol)}</small></div></div>
+          <a class="usuario" href="#/perfil" title="Mi perfil: cambiar foto y datos"><span id="usuario-avatar">${avatar(nombre, null, 'avatar--m')}</span>
+            <div><b id="usuario-nombre">${esc(nombre)}</b><small>${esc(ROLES[rol] || rol)}</small></div></a>
           <button class="btn btn--suave btn--ancho btn--chico" id="salir">${icono.salir}<span>Cerrar sesión</span></button>
         </div>
       </aside>
@@ -99,8 +102,13 @@ function mostrarApp() {
         <header class="topbar">
           <button class="icono-btn topbar__menu" id="menu" aria-label="Abrir menú">${icono.menu}</button>
           <span class="topbar__rol"><i class="punto punto--atendida"></i>${esc(ROLES[rol] || rol)}</span>
+          <span class="topbar__reloj" id="topbar-reloj" aria-hidden="true"></span>
           <div class="topbar__acciones">
             <button class="icono-btn" id="tema" aria-label="Cambiar entre modo claro y oscuro"></button>
+            <a class="topbar__usuario" href="#/perfil" aria-label="Mi perfil">
+              <span class="topbar__quien"><b id="topbar-nombre">${esc(nombre)}</b><small>${esc(ROLES[rol] || rol)}</small></span>
+              <span id="topbar-avatar">${avatar(nombre, null, '')}</span>
+            </a>
           </div>
         </header>
         <main class="pagina" id="vista" tabindex="-1"></main>
@@ -118,12 +126,22 @@ function mostrarApp() {
   aplicarTema(document.documentElement.dataset.theme);
 
   // El menú lateral muestra la foto y el nombre; se actualizan cuando el usuario edita su perfil.
-  const pintarUsuario = (n, foto) => {
-    document.getElementById('usuario-avatar').innerHTML = avatar(n, foto, 'avatar--m');
-    document.getElementById('usuario-nombre').textContent = n;
+  const poner = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  pintarUsuario = (n, foto) => {
+    poner('usuario-avatar', avatar(n, foto, 'avatar--m'));
+    poner('topbar-avatar', avatar(n, foto, ''));
+    for (const id of ['usuario-nombre', 'topbar-nombre']) { const el = document.getElementById(id); if (el) el.textContent = n; }
   };
-  window.addEventListener('perfil-actualizado', e => pintarUsuario(e.detail.nombre, e.detail.foto));
   api.perfil().then(p => pintarUsuario(`${p.nombres} ${p.apellidos}`, p.foto)).catch(() => {});
+
+  // hora y fecha de Lima en la barra superior
+  const pintarReloj = () => {
+    const el = document.getElementById('topbar-reloj');
+    if (!el) { clearInterval(relojTopbar); return; }
+    const d = new Date(), z = { timeZone: ZONA };
+    el.innerHTML = `${new Intl.DateTimeFormat('es-PE', { ...z, weekday: 'short', day: 'numeric', month: 'short' }).format(d).replace('.', '')} · <b>${new Intl.DateTimeFormat('es-PE', { ...z, hour: '2-digit', minute: '2-digit', hour12: false }).format(d)}</b>`;
+  };
+  clearInterval(relojTopbar); pintarReloj(); relojTopbar = setInterval(pintarReloj, 20000);
 
   if (!location.hash.startsWith('#/')) location.hash = '#/resumen';
   navegar();

@@ -1,0 +1,38 @@
+/* MediCita · encabezado de bienvenida del resumen. */
+.avatar--xl { width: 108px; height: 108px; font-size: 36px; border: 3px solid rgba(255, 255, 255, .9); box-shadow: 0 10px 28px rgba(3, 20, 36, .45); }
+.hero { position: relative; overflow: hidden; isolation: isolate; color: #fff; border-radius: 24px; margin-bottom: 22px; padding: 28px 32px 56px;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px 32px; align-items: center; background: #0b3b4a; box-shadow: 0 18px 44px rgba(10, 37, 64, .22); }
+.hero__foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 40%; z-index: -2; opacity: .55; animation: hero-zoom 24s ease-in-out infinite alternate; }
+@keyframes hero-zoom { to { transform: scale(1.08); } }
+.hero__velo { position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, rgba(15, 118, 110, .94) 0%, rgba(11, 59, 74, .88) 45%, rgba(10, 37, 64, .72) 100%); }
+.hero__perfil { display: flex; align-items: center; gap: 20px; }
+.hero__avatar { position: relative; display: grid; border-radius: 50%; text-decoration: none; color: inherit; }
+.hero__avatar .avatar { background: rgba(255, 255, 255, .92); }
+.hero__anillo { position: absolute; inset: -9px; border-radius: 50%; border: 2px solid rgba(94, 234, 212, .75); animation: hero-latido 1.8s ease-out infinite; pointer-events: none; }
+@keyframes hero-latido { 0% { transform: scale(.94); opacity: .9; } 70%, 100% { transform: scale(1.14); opacity: 0; } }
+.hero__saludo p { margin: 0; font-size: 15.5px; color: rgba(255, 255, 255, .86); }
+.hero__saludo h1 { margin: 0; font-size: 38px; line-height: 1.05; letter-spacing: -.025em; }
+.hero__saludo .hero__rol { margin-top: 6px; display: inline-block; padding: 3px 12px; border-radius: 999px; background: rgba(255, 255, 255, .16); font-size: 12.5px; font-weight: 650; }
+.hero__centro { display: grid; gap: 14px; min-width: 0; }
+.hero__frase { margin: 0; font-size: 18px; line-height: 1.4; max-width: 46ch; text-shadow: 0 2px 12px rgba(3, 20, 36, .4); }
+.hero__datos { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero__dato { display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 14px; border-radius: 14px; background: rgba(255, 255, 255, .13); border: 1px solid rgba(255, 255, 255, .2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); min-width: 0; }
+.hero__dato b { font-size: 22px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.hero__dato small { font-size: 13px; color: rgba(255, 255, 255, .88); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero__dato--hoy { background: rgba(94, 234, 212, .22); border-color: rgba(94, 234, 212, .55); }
+.hero__dato--ancho { max-width: 100%; }
+.hero__dato--carga { color: rgba(255, 255, 255, .8); font-size: 14px; }
+.hero__tiempo { text-align: right; }
+.hero__hora { margin: 0; font-size: 52px; font-weight: 750; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.hero__hora small { font-size: 20px; font-weight: 600; opacity: .7; letter-spacing: 0; }
+.hero__fecha { margin: 8px 0 0; font-size: 15px; font-weight: 600; }
+.hero__clima { margin: 4px 0 0; font-size: 13px; color: rgba(255, 255, 255, .85); }
+.hero__ecg { position: absolute; left: 0; right: 0; bottom: 6px; width: 100%; height: 44px; z-index: 0; pointer-events: none; filter: drop-shadow(0 0 6px rgba(94, 234, 212, .7)); }
+.hero__ecg path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.hero__ecg .ecg-base { stroke: rgba(255, 255, 255, .22); stroke-width: 1.4; }
+.hero__ecg .ecg-pulso { stroke: #5eead4; stroke-width: 2.6; stroke-dasharray: 200 800; animation: hero-ecg 4s linear infinite; }
+@keyframes hero-ecg { from { stroke-dashoffset: 200; } to { stroke-dashoffset: -800; } }
+.pagina__cab--resumen .pagina__titulo { font-size: 20px; }
+@media (max-width: 1100px) { .hero { grid-template-columns: auto minmax(0, 1fr); } .hero__tiempo { grid-column: 1 / -1; text-align: left; display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; } .hero__fecha, .hero__clima { margin: 0; } }
+@media (max-width: 640px) { .hero { grid-template-columns: 1fr; padding: 20px 18px 54px; } .avatar--xl { width: 84px; height: 84px; font-size: 28px; } .hero__saludo h1 { font-size: 30px; } .hero__hora { font-size: 40px; } .hero__frase { font-size: 16px; } }
+@media (prefers-reduced-motion: reduce) { .hero__foto, .hero__anillo, .hero__ecg .ecg-pulso { animation: none; } .hero__ecg .ecg-pulso { stroke-dasharray: none; } }
